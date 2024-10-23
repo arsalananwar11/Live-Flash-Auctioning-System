@@ -1,4 +1,5 @@
 # Live Flash Auctioning System
+[![Lint and Format Check](https://github.com/arsalananwar11/Live-Flash-Auctioning-System/actions/workflows/lint.yml/badge.svg)](https://github.com/arsalananwar11/Live-Flash-Auctioning-System/actions/workflows/lint.yml)
 
 The Live Flash Auctioning System is an innovative platform that facilitates real-time auctions with minimal latency. Auctioneers can host live auctions, engaging participants globally. The platform ensures fair bidding practices through synchronized countdown timers and instant notifications, allowing users to participate from any location seamlessly.
 
