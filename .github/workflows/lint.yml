@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-      - main  # You can specify branches where the checks will run.
+      - '**'
   workflow_dispatch:  # Allows you to trigger the workflow manually
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.12'  # Define the Python version to use (e.g., 3.8, 3.9, etc.)
+        python-version: '3.12'
 
     # Step 3: Install dependencies (Black and Flake8)
     - name: Install dependencies
