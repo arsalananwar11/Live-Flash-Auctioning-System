@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Live Flash Auctioning System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <!-- Navbar (top bar) -->
+        {% block page_header %}
+        {% include "shared/navbar.html" %}
+        {% endblock %}
+
+        <!-- Main Body Content -->
+        {% block page_body %} 
+        {% endblock %}
+
+        <!-- Footer -->
+        {% block page_footer %}
+        {% include "shared/footer.html" %}
+        {% endblock %}
+
+    </body>
+</html>
