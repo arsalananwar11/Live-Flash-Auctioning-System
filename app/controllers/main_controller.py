@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template
 from app.services.main_service import MainService
-import time
 
 main = Blueprint("main", __name__)
 
