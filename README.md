@@ -1,4 +1,4 @@
-# Live-Flash-Auctioning-System
+# Live Flash Auctioning System
 
 The Live Flash Auctioning System is an innovative platform that facilitates real-time auctions with minimal latency. Auctioneers can host live auctions, engaging participants globally. The platform ensures fair bidding practices through synchronized countdown timers and instant notifications, allowing users to participate from any location seamlessly.
 
@@ -33,6 +33,66 @@ The Live Flash Auctioning System is an innovative platform that facilitates real
 10. #### Real-Time Data Synchronization:
   - Uses AWS AppSync or Amazon Kinesis for real-time data synchronization between the server and clients.
   - Ensures all users receive instantaneous updates on bids and timer changes.
+
+## Getting Started
+Follow these steps to clone the repository and run the application locally with Black and Flake8 checks.
+
+### Prerequisites
+
+- Python 3.12
+- pip
+
+### Steps to Clone and Run the Project
+
+  1. **Clone the Repository**
+      ```bash
+      git clone https://github.com/arsalananwar11/Live-Flash-Auctioning-System.git
+      cd Live-Flash-Auctioning-System
+      ```
+
+  2. **Create a Virtual Environment**
+      ```bash
+      python3 -m venv venv
+      source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+      ```
+
+  3. **Create a Virtual Environment**
+      ```bash
+      pip install -r requirements.txt
+      ```
+
+  4. **Run the Application**
+      ```bash
+      flask run
+      ```
+
+## Steps to Contribute to the Project
+  1. **Create a Branch for Your Feature or Fix**
+      ```bash
+      git checkout -b feature/<your-feature-name>
+      ```
+
+  2. **Run Black and Flake8 Checks**
+      ```bash
+      # Auto-format with Black
+      black .
+
+      # Check for linting issues with Flake8
+      flake8 .
+  3. **Commit Your Changes**
+      ```bash
+      git add .
+      git commit -m "Add a brief description of your changes"
+      ```
+  4. **Create a Branch for Your Feature or Fix**
+      ```bash
+      git push origin feature/<your-feature-name>
+      ```
+  5. **Open a Pull Request**
+
+      - Go to the repository and click on Pull Requests.
+      - Click on New Pull Request and select your branch to submit your changes for review.
+      - Wait for all the checks to pass and atleast one reviewer to approve your PR
 
 ## Tech Stack
 - WebSockets for low-latency real-time communication
