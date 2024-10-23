@@ -13,6 +13,6 @@ def index():
 @main.route("/status")
 def status():
     message = MainService().get_message(
-        "The system is live and responding to requests!"
+        "The auction system is live and responding to requests!"
     )
     return render_template("index.html", message=message)
