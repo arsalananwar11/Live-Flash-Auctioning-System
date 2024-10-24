@@ -57,7 +57,7 @@ Follow these steps to clone the repository and run the application locally with 
       source venv/bin/activate  # On Windows use `venv\Scripts\activate`
       ```
 
-  3. **Create a Virtual Environment**
+  3. **Install the requirements**
       ```bash
       pip install -r requirements.txt
       ```
