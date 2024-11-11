@@ -1,36 +1,72 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const tabs = document.querySelectorAll('.tabs-group .tab-default, .tabs-group .tab-selected');
-    const auctionRow = document.getElementById('auction-row');
+$(document).ready(function () {
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function () {
-            
-            tabs.forEach(t => {
-                t.classList.remove('tab-selected');
-                t.classList.add('tab-default');
-                const content = t.querySelector('.tab-content') || t.querySelector('.tab-default-content');
-                if (content) {
-                    content.classList.remove('tab-content');
-                    content.classList.add('tab-default-content');
-                }
-            });
-
-            this.classList.remove('tab-default');
-            this.classList.add('tab-selected');
-            const content = this.querySelector('.tab-default-content');
-            if (content) {
-                content.classList.remove('tab-default-content');
-                content.classList.add('tab-content');
-            }
-
-            // Load corresponding content (Mock fetching auction data)
-            const tabTitle = this.querySelector('.tab-title').innerText;
-            console.log(`Loading data for ${tabTitle}`);
-
-            // Fetch auction data from the server via an API request
-            loadAuctionData(tabTitle);
+    $('.tabs-group .tab-default, .tabs-group .tab-selected').on('click', function () {
+        // Remove selected state from all tabs
+        $('.tabs-group .tab-default, .tabs-group .tab-selected').each(function () {
+            $(this).removeClass('tab-selected').addClass('tab-default');
+            $(this).find('.tab-content').removeClass('tab-content').addClass('tab-default-content');
         });
-    });
 
-    
+        // Add selected state to the clicked tab
+        $(this).removeClass('tab-default').addClass('tab-selected');
+        $(this).find('.tab-default-content').removeClass('tab-default-content').addClass('tab-content');
+
+        // Load corresponding content
+        const tabTitle = $(this).find('.tab-title').text();
+        loadAuctionData(tabTitle);
+    });
 });
+
+function loadAuctionData(tabTitle) {
+            $.getJSON('/static/dummyData/sampleData.json', function (data) {
+                const auctionData = data[tabTitle];
+                const auctionRow = $('.auction-row');
+                auctionRow.empty(); // Clear existing cards
+
+                $.each(auctionData, function (index, auction) {
+                    // Create auction card HTML
+                    const auctionCard = `
+                        <article class="auction-column">
+                            <div class="auction-card">
+                                <div class="card-background"></div>
+                                <div class="card-content">
+                                    <header class="card-header">
+                                        <div class="header-content">
+                                            <div class="avatar">
+                                                <div class="avatar-background">${auction.organizer.charAt(0)}</div>
+                                            </div>
+                                            <div class="header-text">
+                                                <h2 class="header-title">${auction.organizer}</h2>
+                                                <p class="header-subtitle">${auction.type}</p>
+                                            </div>
+                                        </div>
+                                    </header>
+                                    <div class="card-media">
+                                        <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/d76c5f972065984933a0e35e9320b1baa3941e5b04710def9bb3b23c60478105?placeholderIfAbsent=true&apiKey=81324c3163b0409590024e6a0b27b016" alt="Product image" class="card-image">
+                                    </div>
+                                    <div class="card-details">
+                                        <div class="card-headline">
+                                            <h3 class="card-title">${auction.product_name}</h3>
+                                            <p class="card-subtitle">Start/End Time: ${auction.start_end_time}</p>
+                                        </div>
+                                        <p class="card-description">${auction.description}</p>
+                                        <div class="card-actions">
+                                            <button class="primary-action">
+                                                <span class="action-state">Join</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                    auctionRow.append(auctionCard);
+                });
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error('There has been a problem with your fetch operation:', errorThrown);
+            });
+        }
+
+
+// Load "All Auction" data by default on page load
+loadAuctionData("All Auction");
