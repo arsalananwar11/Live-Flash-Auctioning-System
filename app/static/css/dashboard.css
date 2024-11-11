@@ -1,0 +1,166 @@
+.dashboard, .main-content {
+    flex: 1;
+}
+
+.dashboard {
+    background-color: #fff;
+    display: flex;
+    padding-bottom: 300px;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content {
+    display: flex;
+    margin-top: 80px;
+    width: 100%;
+    flex-direction: column;
+    padding: 0 50px;
+}
+
+
+.nav-and-create {
+    display: flex;
+    margin-left: 14px;
+    width: 100%;
+    align-items: start;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+
+.tabs-group {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    overflow: hidden;
+    color: #333;
+    justify-content: start;
+    flex-wrap: wrap;
+    font: 500 14px/2 Roboto, sans-serif;
+}
+
+.tab-selected, .tab-default {
+    cursor: pointer;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    justify-content: start;
+    margin: auto 0;
+    transition: all 0.3s;
+}
+
+.tab-selected {
+    color: #2b6ed3;
+}
+
+.tab-content, .tab-default-content {
+    align-items: center;
+    background-color: #fff;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    justify-content: center;
+    margin: auto 0;
+    padding: 13px 0;
+    transition: all 0.3s;
+}
+
+.tab-content {
+    box-shadow: 0 -2px 0 0 #2b6ed3 inset;
+}
+
+.tab-default-content {
+    box-shadow: 0 -1px 0 0 #eee inset;
+}
+
+.tab-title {
+    align-self: stretch;
+    min-height: 22px;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.tab-spacer {
+    background: #fff;
+    box-shadow: 0 -1px 0 0 #eee inset;
+    align-self: stretch;
+    display: flex;
+    width: 24px;
+    height: 48px;
+    margin: auto 0;
+}
+
+.create-button {
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+    align-self: stretch;
+    border-radius: 8px;
+    background-color: #1fd715;
+    margin-top: 12px;
+    gap: 8px;
+    overflow: hidden;
+    color: #fff;
+    padding: 12px;
+    font: 400 14px/1 Roboto, sans-serif;
+    cursor: pointer;
+}
+
+/* Auction Grid Styles */
+.auction-grid {
+    margin-top: 29px;
+    width: 100%;
+    max-width: 1249px;
+}
+
+.auction-row {
+    gap: 20px;
+    display: flex;
+}
+
+.auction-column {
+    display: flex;
+    flex-direction: column;
+    line-height: normal;
+    width: 33%;
+    margin-left: 0;
+}
+
+@media (max-width: 991px) {
+
+    .dashboard {
+        padding-bottom: 100px;
+    }
+
+    .main-content {
+        max-width: 100%;
+        padding: 0 20px;
+    }
+
+    .nav-and-create {
+        max-width: 100%;
+    }
+
+    .tabs-group {
+        max-width: 100%;
+    }
+
+    .auction-grid {
+        max-width: 100%;
+    }
+
+    .auction-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .auction-column {
+        width: 100%;
+    }
+}
+
+
+

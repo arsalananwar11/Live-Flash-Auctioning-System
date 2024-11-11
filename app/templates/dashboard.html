@@ -1,0 +1,38 @@
+{% extends "shared/main.html" %}
+
+{% block page_body %}
+<main class="dashboard">
+  <div class="main-content">
+    <nav class="nav-and-create">
+      <div class="tabs-group">
+        <div class="tab-selected">
+          <div class="tab-content">
+            <span class="tab-title">All Auction</span>
+          </div>
+          <div class="tab-spacer"></div>
+        </div>
+        <div class="tab-default">
+          <div class="tab-default-content">
+            <span class="tab-title">Upcoming Auctions</span>
+          </div>
+          <div class="tab-spacer"></div>
+        </div>
+        <div class="tab-default">
+          <div class="tab-default-content">
+            <span class="tab-title">My Auction</span>
+          </div>
+          <div class="tab-spacer"></div>
+        </div>
+      </div>
+      <button class="create-button">Create Auction</button>
+    </nav>
+    <section class="auction-grid">
+      <div class="auction-row" id="auction-row">
+        <!-- Auction Cards will be dynamically injected here -->
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
