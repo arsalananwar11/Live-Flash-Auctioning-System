@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
-  title: Live Auction System API
-  description: 'Live-Auction System application, built using the AWS Cloud Services at New York University University.'
+  title: Live Flash Auctioning System API
+  description: 'Live Flash Auctioning System built using the AWS Cloud Services as part of the Cloud Computing course at New York University.'
   version: 1.0.0
 schemes:
   - https
@@ -11,10 +11,10 @@ produces:
 paths:
   /add-auction:
     post:
-      summary: The endpoint auction creation API.
+      summary: API to create an auction
       description: |
         This API takes in auction details from the client and returns
-        one or more messages as a response.
+        a standardized operation response indicating success or failure.
       tags:
         - Auction CRUD
       operationId: addAuction
@@ -31,25 +31,80 @@ paths:
                 type: object
                 $ref: '#/definitions/AddAuctionData'
       responses:
-        '200':
-          description: Success response
+        '201':
+          description: Auction Created Successfully
           schema:
-            $ref: '#/definitions/SuccessPlainResponse'
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 201
+              status_message:
+                type: string
+                example: "Auction created successfully."
+              data:
+                type: object
+                example:
+                  auction_id: "7c6931df-415c-4cae-8620-0da4b792cb58"
+                  message: "Your auction has been listed successfully."
+        '401':
+          description: Unauthorized. Access token is missing or invalid.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 401
+              status_message:
+                type: string
+                example: "Unauthorized"
+              error_details:
+                type: object
+                example:
+                  error_code: "INVALID_TOKEN"
+                  error_message: "Access token is invalid or missing."
         '403':
-          description: Unauthorized
+          description: Forbidden. You do not have permission to access this resource.
           schema:
-            $ref: '#/definitions/Error'
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 403
+              status_message:
+                type: string
+                example: "Forbidden"
+              error_details:
+                type: object
+                example:
+                  error_code: "ACCESS_DENIED"
+                  error_message: "You do not have permission to perform this action."
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 500
+              status_message:
+                type: string
+                example: "Internal Server Error"
+              error_details:
+                type: object
+                example:
+                  error_code: "SERVER_ERROR"
+                  error_message: "An unexpected error occurred. Please try again later."
 
   /get-auction/{mode}:
-    post:
-      summary: The endpoint get all auction API.
+    get:
+      summary: API to fetch all auctions
       description: |
-        This API gets all auctions detail from the AWS dynamoDB. works based on selected mode. mode #1-all auctions mode #2-upcoming auctions mode #3-my auctions
+        This API gets all the auctions from the backend depending upon selected  mode.
+        Mode takes 3 values: 
+          - 'all_auctions': Fetch all auctions (DEFAULT)
+          - 'upcoming_auctions': Fetch all upcoming auctions 
+          - 'my_auctions': Fetch all my auctions
       tags:
         - Auction CRUD
       operationId: getAuction
@@ -59,137 +114,147 @@ paths:
         - in: path
           name: mode
           required: true
-          type: integer
-          example: 2
-
+          type: string
+          default: 'all_auctions'
       responses:
         '200':
           description: Success response
           schema:
-            $ref: '#/definitions/GetAuctionResponse'
-        '403':
-          description: Unauthorized
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 200
+              status_message:
+                type: string
+                example: "Auctions fetched successfully."
+              data:
+                type: array
+                items:
+                  type: string
+                example: [
+                  {
+                    id: "7c6931df-415c-4cae-8620-0da4b792cb58",
+                    product_name: "Antique Fan",
+                    product_description: "A rare collector's item.",
+                    product_images: ["https://example.com/image1.jpg"],
+                    base_price: 250.0,
+                    start_time: "2024-11-16T09:00:00Z",
+                    end_time: "2024-11-17T18:00:00Z",
+                    is_active: true,
+                    created_by: "johndoe@gmail.com"
+                  }
+                ]
+        '401':
+          description: Unauthorized. Access token is missing or invalid.
           schema:
-            $ref: '#/definitions/Error'
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 401
+              status_message:
+                type: string
+                example: "Unauthorized"
+              error_details:
+                type: object
+                example:
+                  error_code: "INVALID_TOKEN"
+                  error_message: "Access token is invalid or missing."
+        '403':
+          description: Forbidden. You do not have permission to access this resource.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 403
+              status_message:
+                type: string
+                example: "Forbidden"
+              error_details:
+                type: object
+                example:
+                  error_code: "ACCESS_DENIED"
+                  error_message: "You do not have permission to access auctions."
+        '404':
+          description: Not Found. No auctions were found for the given mode.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 404
+              status_message:
+                type: string
+                example: "Not Found"
+              error_details:
+                type: object
+                example:
+                  error_code: "AUCTIONS_NOT_FOUND"
+                  error_message: "No auctions found for the mode 'all_auctions'."
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
-
-
-
-
-
-
-
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 500
+              status_message:
+                type: string
+                example: "Internal Server Error"
+              error_details:
+                type: object
+                example:
+                  error_code: "SERVER_ERROR"
+                  error_message: "An unexpected error occurred. Please try again later."
 
 definitions:
-  GetAuctionResponse:
-    type: object
-    properties:
-      status_code:
-        type: integer
-        format: int32
-      status_message:
-        type: string
-      data:
-        type: array
-        items:
-          $ref: "#/definitions/GetAuctionData"
-
-
   AddAuctionData:
     type: object
     properties:
       product_name:
         type: string
-        example: Table Fan
+        example: Antique Fan
       product_description:
         type: string
-        example: A working and in good condition lasko fan, comes along with remote
+        example: An antique table fan, in excellent condition, a rare collector's item.
       product_images:
         type: array
         items:
-          type: string #base64/URL string list
+          type: string
+        example:
+          - "https://example.com/images/antique-fan1.jpg"
+          - "https://example.com/images/antique-fan2.jpg"
       base_price:
         type: number
-        example: 12.5
+        example: 250.0
       start_time:
         type: string
         format: datetime
+        example: "2024-11-16T09:00:00Z"
       end_time:
         type: string
         format: datetime
+        example: "2024-11-17T18:00:00Z"
       created_time:
         type: string
         format: datetime
+        example: "2024-11-15T12:00:00Z"
       modified_time:
         type: string
         format: datetime
-      default_time_increment: #seconds
+        example: "2024-11-15T12:30:00Z"
+      default_time_increment:
         type: integer
-      default_time_increment_before: #minutes
+        example: 300
+      default_time_increment_before:
         type: integer
+        example: 10
       is_active:
         type: boolean
+        example: true
       created_by:
         type: string
-
-  GetAuctionData:
-    type: object
-    properties:
-      id:
-        type: string
-      product_name:
-        type: string
-      product_description:
-        type: string
-      product_images:
-        type: array
-        items:
-          type: string #base64/URL string list
-      base_price:
-        type: number
-      start_time:
-        type: string
-        format: datetime
-      end_time:
-        type: string
-        format: datetime
-      created_time:
-        type: string
-        format: datetime
-      modified_time:
-        type: string
-        format: datetime
-      default_time_increment: #seconds
-        type: integer
-      default_time_increment_before: #minutes
-        type: integer
-      is_active:
-        type: boolean
-      created_by:
-        type: string
-
-
-  SuccessPlainResponse:
-    type: object
-    properties:
-      status_code:
-        type: integer
-        format: int32
-      status_message:
-        type: string
-
-
-  Error:
-    type: object
-    properties:
-      status_code:
-        type: integer
-        format: int32
-      status_message:
-        type: string
-      error:
-        type: string
+        example: "jogndoe@gmail.com"
