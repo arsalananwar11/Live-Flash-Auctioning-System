@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
-  title: Live Austion System API
-  description: 'Live-Aution System application, built using the AWS Cloud Services at New York University University.'
+  title: Live Auction System API
+  description: 'Live-Auction System application, built using the AWS Cloud Services at New York University University.'
   version: 1.0.0
 schemes:
   - https
@@ -13,7 +13,7 @@ paths:
     post:
       summary: The endpoint auction creation API.
       description: |
-        This API takes in aution details from the client and returns
+        This API takes in auction details from the client and returns
         one or more messages as a response.
       tags:
         - Auction CRUD
@@ -49,7 +49,7 @@ paths:
     post:
       summary: The endpoint get all auction API.
       description: |
-        This API gets all autions detail from the AWS dynamoDB. works based on selected mode. mode #1-all auctions mode #2-upcoming auctions mode #3-my auctions
+        This API gets all auctions detail from the AWS dynamoDB. works based on selected mode. mode #1-all auctions mode #2-upcoming auctions mode #3-my auctions
       tags:
         - Auction CRUD
       operationId: getAuction
