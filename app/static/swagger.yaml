@@ -1,0 +1,195 @@
+swagger: '2.0'
+info:
+  title: Live Austion System API
+  description: 'Live-Aution System application, built using the AWS Cloud Services at New York University University.'
+  version: 1.0.0
+schemes:
+  - https
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /add-auction:
+    post:
+      summary: The endpoint auction creation API.
+      description: |
+        This API takes in aution details from the client and returns
+        one or more messages as a response.
+      tags:
+        - Auction CRUD
+      operationId: addAuction
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/definitions/AddAuctionData'
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/SuccessPlainResponse'
+        '403':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+  /get-auction/{mode}:
+    post:
+      summary: The endpoint get all auction API.
+      description: |
+        This API gets all autions detail from the AWS dynamoDB. works based on selected mode. mode #1-all auctions mode #2-upcoming auctions mode #3-my auctions
+      tags:
+        - Auction CRUD
+      operationId: getAuction
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: mode
+          required: true
+          type: integer
+          example: 2
+
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/GetAuctionResponse'
+        '403':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+
+
+
+
+
+
+
+definitions:
+  GetAuctionResponse:
+    type: object
+    properties:
+      status_code:
+        type: integer
+        format: int32
+      status_message:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/GetAuctionData"
+
+
+  AddAuctionData:
+    type: object
+    properties:
+      product_name:
+        type: string
+        example: Table Fan
+      product_description:
+        type: string
+        example: A working and in good condition lasko fan, comes along with remote
+      product_images:
+        type: array
+        items:
+          type: string #base64/URL string list
+      base_price:
+        type: number
+        example: 12.5
+      start_time:
+        type: string
+        format: datetime
+      end_time:
+        type: string
+        format: datetime
+      created_time:
+        type: string
+        format: datetime
+      modified_time:
+        type: string
+        format: datetime
+      default_time_increment: #seconds
+        type: integer
+      default_time_increment_before: #minutes
+        type: integer
+      is_active:
+        type: boolean
+      created_by:
+        type: string
+
+  GetAuctionData:
+    type: object
+    properties:
+      id:
+        type: string
+      product_name:
+        type: string
+      product_description:
+        type: string
+      product_images:
+        type: array
+        items:
+          type: string #base64/URL string list
+      base_price:
+        type: number
+      start_time:
+        type: string
+        format: datetime
+      end_time:
+        type: string
+        format: datetime
+      created_time:
+        type: string
+        format: datetime
+      modified_time:
+        type: string
+        format: datetime
+      default_time_increment: #seconds
+        type: integer
+      default_time_increment_before: #minutes
+        type: integer
+      is_active:
+        type: boolean
+      created_by:
+        type: string
+
+
+  SuccessPlainResponse:
+    type: object
+    properties:
+      status_code:
+        type: integer
+        format: int32
+      status_message:
+        type: string
+
+
+  Error:
+    type: object
+    properties:
+      status_code:
+        type: integer
+        format: int32
+      status_message:
+        type: string
+      error:
+        type: string
