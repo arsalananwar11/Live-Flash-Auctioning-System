@@ -18,3 +18,9 @@ def status():
         "The auction system is live and responding to requests!"
     )
     return render_template("index.html", message=message)
+
+
+# Dashboard route
+@main_controller.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
