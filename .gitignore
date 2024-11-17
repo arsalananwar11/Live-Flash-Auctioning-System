@@ -1,0 +1,49 @@
+# Ignore virtual environments
+venv/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore environment variables
+.env
+
+# Ignore migrations cache files
+migrations/__pycache__/
+migrations/versions/__pycache__/
+
+# Ignore database files (if you're using SQLite for development)
+*.db
+*.sqlite3
+
+# Ignore compiled files
+*.pyo
+*.pyc
+*.pyd
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
+
+# Ignore Python egg files
+*.egg-info/
+.eggs/
+
+# Ignore build artifacts
+build/
+dist/
+*.egg
+*.egg-info/
+*.manifest
+*.spec
+
+# Ignore coverage reports
+.coverage
+htmlcov/
