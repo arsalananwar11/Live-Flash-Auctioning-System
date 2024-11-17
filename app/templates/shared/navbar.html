@@ -3,14 +3,13 @@
     <div class="w3-bar w3-white w3-padding w3-card" style="letter-spacing:4px;">
         <a href="/dashboard" class="w3-bar-item w3-button">Live Flash Auctioning System</a>
         <div class="w3-right w3-hide-small">
-            <!-- <a href="/dashboard" class="w3-bar-item w3-button">Dashboard</a>
-            <a href="#" class="w3-bar-item w3-button">Auctions</a>
-            <a href="#" class="w3-bar-item w3-button">Login</a> -->
-            <!-- <h1 class="site-title">Auctioneer</h1> -->
-            <div class="user-info">
-            <span class="user-name">Affan Khamse</span>
-            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/a8d9623236c2a791aa563fff9dbb165c8cc9050ebdc825b210d905ae2e36f558?placeholderIfAbsent=true&apiKey=81324c3163b0409590024e6a0b27b016" alt="User avatar" class="user-avatar">
-            </div>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auction_controller.auctions')}}" class="w3-bar-item w3-button">Dashboard</a>
+                <a href="#" class="w3-bar-item w3-button">Profile</a>
+                <a href="{{ url_for('login_controller.logout')}}" class="w3-bar-item w3-button">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login_controller.login')}}" class="w3-bar-item w3-button">Login</a>
+            {% endif %}
         </div>
     </div>
 </div>

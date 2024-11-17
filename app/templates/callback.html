@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing Token</title>
+    <script>
+        // Extract the token from the URL fragment
+        const hash = window.location.hash.substring(1); // Remove the '#'
+        const params = new URLSearchParams(hash);
+
+        const idToken = params.get("id_token");
+
+        if (idToken) {
+            // Redirect to the same URL with `id_token` as a query parameter
+            const newUrl = `${window.location.origin}${window.location.pathname}?id_token=${idToken}`;
+            window.location.replace(newUrl);
+        } else {
+            document.body.innerText = "Error: No token found.";
+        }
+    </script>
+</head>
+<body>
+    Extracting token...
+</body>
+</html>
