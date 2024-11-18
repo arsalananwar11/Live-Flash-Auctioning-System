@@ -33,6 +33,7 @@ const leaderboard = [
 
 document.addEventListener("DOMContentLoaded", function() {
     const leaderboardTable = document.querySelector(".leaderboard-table tbody");
+    leaderboardTable.innerHTML = ""; // Clear existing leaderboard
 
     leaderboard.forEach(leader => {
         const row = document.createElement("tr");
