@@ -21,4 +21,4 @@ def auction_details(auction_id):
     if target_auction is None:
         return "Auction not found", 404
 
-    return render_template("auctiondetails.html", auction=target_auction)
+    return render_template("auction_details.html", auction=target_auction)
