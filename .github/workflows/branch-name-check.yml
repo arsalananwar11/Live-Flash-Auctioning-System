@@ -1,0 +1,36 @@
+name: Branch Name Check
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  branch_name_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Branch Name
+        id: extract_branch
+        run: echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_ENV
+
+      - name: Check Branch Name Format
+        run: |
+          # Retrieve the branch name from the environment
+          BRANCH_NAME=$BRANCH_NAME
+
+          # Convert branch name to lowercase
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
+          echo "Branch name: $BRANCH_NAME_LOWER"
+
+          # Validate the lowercase branch name
+          if [[ "$BRANCH_NAME_LOWER" == "main" ]]; then
+            echo "On main branch. Validation passed."
+            exit 0
+          fi
+
+          # Validate the lowercase branch name
+          if [[ ! "$BRANCH_NAME_LOWER" =~ ^(task|bugfix|feature|hotfix|chore|release|tests|doc|refactor)/issue-[0-9]+[/-][a-z0-9_-]+$ ]]; then
+            echo "Branch name $BRANCH_NAME_LOWER does not follow the required pattern: branch-type/issue-###/short-description"
+            echo "branch-type must be one of: task, bugfix, feature, hotfix, chore, release, test, doc, refactor"
+            exit 1
+          fi
