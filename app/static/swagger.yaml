@@ -96,7 +96,7 @@ paths:
                   error_code: "SERVER_ERROR"
                   error_message: "An unexpected error occurred. Please try again later."
 
-  /get-auction/{mode}:
+  /get-auctions/{mode}:
     get:
       summary: API to fetch all auctions
       description: |
