@@ -26,24 +26,6 @@ class User(UserMixin):
         self.name = name
 
 
-# @login_controller.record_once
-# def on_load(state):
-#     app = state.app
-
-#     # Initialize Flask-Login
-#     login_manager = LoginManager()
-#     login_manager.init_app(app)
-
-#     @login_manager.user_loader
-#     def load_user(user_id):
-#         # Retrieve user info from database or session
-#         email = session.get("email")
-#         name = session.get("name")
-#         if email:
-#             return User(id=user_id, email=email, name=name)
-#         return None
-
-
 @login_controller.route("/login")
 def login():
     """Redirect the user to Cognito's Hosted UI for authentication."""
