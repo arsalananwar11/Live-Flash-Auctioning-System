@@ -27,22 +27,22 @@ class User(UserMixin):
         self.name = name
 
 
-@login_controller.record_once
-def on_load(state):
-    app = state.app
+# @login_controller.record_once
+# def on_load(state):
+#     app = state.app
 
-    # Initialize Flask-Login
-    login_manager = LoginManager()
-    login_manager.init_app(app)
+#     # Initialize Flask-Login
+#     login_manager = LoginManager()
+#     login_manager.init_app(app)
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        # Retrieve user info from database or session
-        email = session.get("email")
-        name = session.get("name")
-        if email:
-            return User(id=user_id, email=email, name=name)
-        return None
+#     @login_manager.user_loader
+#     def load_user(user_id):
+#         # Retrieve user info from database or session
+#         email = session.get("email")
+#         name = session.get("name")
+#         if email:
+#             return User(id=user_id, email=email, name=name)
+#         return None
 
 
 @login_controller.route("/login")
@@ -68,7 +68,7 @@ def callback():
                 id=session["user_id"], email=session["email"], name=session["name"]
             )
             login_user(user)
-            return redirect(url_for("auction_controller.auctions"))
+            return redirect(url_for("main_controller.open_dashboard"))
 
     return render_template("callback.html")
 
@@ -125,6 +125,6 @@ def decode_cognito_token(token):
 def home():
     if current_user.is_authenticated:
         if "access_token" in session:
-            return redirect(url_for("auction_controller.auctions"))
+            return redirect(url_for("main_controller.open_dashboard"))
 
     return redirect(url_for("login_controller.login"))
