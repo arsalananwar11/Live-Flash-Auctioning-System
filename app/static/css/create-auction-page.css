@@ -1,0 +1,176 @@
+:root {
+    --Schemes-Surface: #fef7ff;
+    --Schemes-On-Surface: #1d1b20;
+    --Blue-Blue-500: #2196f3;
+    --Button-Green: #14ae5c;
+    --Button-Green-Hover: #0d9b50;
+    --Button-Grey: #b2b2b2;
+    --Button-Grey-Hover: #999;
+}
+
+.auction-form {
+    background-color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.main-content {
+    max-width: 800px;
+    width: 100%;
+    margin: auto;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font: 600 28px/34px "Roboto", sans-serif;
+    color: var(--Schemes-On-Surface);
+}
+
+.form-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+.form-label {
+    display: block;
+    font: 500 14px/20px "Roboto", sans-serif;
+    margin-bottom: 8px;
+    color: var(--Schemes-On-Surface);
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #d9d9d9;
+    padding: 12px 16px;
+    font: 400 16px/20px "Roboto", sans-serif;
+    color: var(--Schemes-On-Surface);
+}
+
+.form-input:focus {
+    border-color: var(--Blue-Blue-500);
+    box-shadow: 0 0 4px rgba(33, 150, 243, 0.2);
+    outline: none;
+}
+
+.date-time-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.date-time-container div {
+    flex: 1;
+    min-width: 150px; /* Ensures proper alignment on smaller screens */
+}
+
+.image-upload-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 150px;
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    margin-top: 10px;
+    background-color: #f7f7f7;
+    text-align: center;
+    font: 500 16px/24px "Roboto", sans-serif;
+    color: #666;
+    cursor: pointer;
+}
+
+.image-upload-container:hover {
+    border-color: var(--Blue-Blue-500);
+}
+
+.terms-container {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 400 14px/20px "Roboto", sans-serif;
+    color: var(--Schemes-On-Surface);
+}
+
+.terms-link {
+    font: 400 14px/20px "Roboto", sans-serif;
+    color: var(--Blue-Blue-500);
+    text-decoration: underline;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.create-button,
+.cancel-button {
+    width: 150px;
+    padding: 10px 20px;
+    font: 500 16px/24px "Roboto", sans-serif;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.create-button {
+    background-color: var(--Button-Green);
+    color: white;
+}
+
+.create-button:hover {
+    background-color: var(--Button-Green-Hover);
+}
+
+.cancel-button {
+    background-color: var(--Button-Grey);
+    color: white;
+}
+
+.cancel-button:hover {
+    background-color: var(--Button-Grey-Hover);
+}
+
+.image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.image-preview img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
