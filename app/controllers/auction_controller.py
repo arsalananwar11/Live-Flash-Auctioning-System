@@ -11,3 +11,8 @@ def auctions():
     message = MainService().get_message()
     message = f"{message} {current_user.name}"
     return render_template("index.html", message=message)
+
+
+@auction_controller.route("/auction_details/<int:auction_id>")
+def auction_details(auction_id):
+    return render_template("auctiondetails.html")
