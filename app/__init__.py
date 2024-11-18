@@ -57,10 +57,10 @@ def create_app():
     app.register_blueprint(login_controller)
     app.register_blueprint(main_controller)
     app.register_blueprint(auction_controller)
-    #Setting Login Manager
-    
+    # Setting Login Manager
+
     login_manager.init_app(app)
-    login_manager.login_view = 'login_controller.login'
+    login_manager.login_view = "login_controller.login"
 
     @login_manager.user_loader
     def load_user(user_id):

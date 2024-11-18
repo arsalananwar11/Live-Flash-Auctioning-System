@@ -10,7 +10,6 @@ from flask import (
 import jwt
 import requests
 from flask_login import (
-    LoginManager,
     UserMixin,
     login_user,
     logout_user,
