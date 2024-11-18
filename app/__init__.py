@@ -43,7 +43,6 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(login_controller)
     app.register_blueprint(main_controller)
-
     app.register_blueprint(auction_controller)
 
     return app
