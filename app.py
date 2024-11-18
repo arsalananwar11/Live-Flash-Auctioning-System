@@ -28,8 +28,28 @@ def get_users():
 def get_auctions():
     # Fetch all auctions
     auctions = Auction.query.all()
-    # Return auction data
-    return {"auctions": [{"auction_id": auction.auction_id, "auction_item": auction.auction_item} for auction in auctions]}
+
+    # Return all auction data in JSON format
+    return {
+        "auctions": [
+            {
+                "auction_id": auction.auction_id,
+                "auction_item": auction.auction_item,
+                "base_price": auction.base_price,
+                "start_time": auction.start_time.strftime("%Y-%m-%d %H:%M:%S") if auction.start_time else None,
+                "end_time": auction.end_time.strftime("%Y-%m-%d %H:%M:%S") if auction.end_time else None,
+                "default_time_increment": auction.default_time_increment,
+                "default_time_increment_after": auction.default_time_increment_after,
+                "auction_desc": auction.auction_desc,
+                "is_active": auction.is_active,
+                "created_by": auction.created_by,
+                "created_on": auction.created_on.strftime("%Y-%m-%d %H:%M:%S") if auction.created_on else None,
+                "modified_on": auction.modified_on.strftime("%Y-%m-%d %H:%M:%S") if auction.modified_on else None,
+                "stop_snipes_after": auction.stop_snipes_after
+            }
+            for auction in auctions
+        ]
+    }
 
 
 @app.route('/interests')
