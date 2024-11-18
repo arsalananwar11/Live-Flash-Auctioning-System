@@ -1,10 +1,7 @@
-from datetime import datetime
 from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
-from app.models import Auction
-from sqlalchemy.orm import joinedload
 
 auction_controller = Blueprint("auction_controller", __name__)
 
@@ -27,82 +24,38 @@ def auction_details(auction_id):
     return render_template("auction_details.html", auction=target_auction)
 
 
-@auction_controller.route("/get-auction/<mode>", methods=["GET"])
+@auction_controller.route("/get-auctions/<mode>", methods=["GET"])
 def get_auctions(mode="all_auctions"):
     try:
         # Get the current user if the mode is 'my_auctions'
-        user_id = request.args.get("user_id")
+        user_email = request.args.get("user_email")
 
         if mode == "all_auctions":
             # Fetch all auctions
-            auctions = Auction.query.options(
-                joinedload(
-                    Auction.interests
-                ),  # Eager load auction interests (users interested)
-                joinedload(
-                    Auction.winners
-                ),  # Eager load auction winners (users who won)
-            ).all()
+            auctions = AuctionService().get_all_auctions()
 
         elif mode == "upcoming_auctions":
             # Fetch all auctions where the end_time is in the future
-            auctions = (
-                Auction.query.options(
-                    joinedload(Auction.interests),
-                    joinedload(Auction.winners),
-                )
-                .filter(Auction.end_time > datetime.utcnow())
-                .all()
-            )
+            auctions = AuctionService().get_upcoming_auctions()
 
-        elif mode == "my_auctions" and user_id:
+        elif mode == "my_auctions" and user_email:
             # Fetch auctions created by the current user (assuming user_id is passed in the request)
-            auctions = (
-                Auction.query.options(
-                    joinedload(Auction.interests),
-                    joinedload(Auction.winners),
-                )
-                .filter(Auction.created_by == user_id)
-                .all()
-            )
+            auctions = AuctionService().get_my_auctions(user_email)
 
         else:
             # Return an error if the mode is not recognized or if user_id is missing in 'my_auctions'
             return (
-                jsonify({"error": "Invalid mode or missing user_id for 'my_auctions'"}),
+                jsonify(
+                    {"error": "Invalid mode or missing user_email for 'my_auctions'"}
+                ),
                 400,
             )
 
         # Prepare the response data
-        result = []
-        for auction in auctions:
-            auction_data = {
-                "auction_id": auction.auction_id,
-                "auction_item": auction.auction_item,
-                "base_price": auction.base_price,
-                "start_time": auction.start_time,
-                "end_time": auction.end_time,
-                "default_time_increment": auction.default_time_increment,
-                "default_time_increment_before": auction.default_time_increment_before,
-                "auction_desc": auction.auction_desc,
-                "is_active": auction.is_active,
-                "created_by": auction.created_by,
-                "created_on": auction.created_on,
-                "modified_on": auction.modified_on,
-                "stop_snipes_after": auction.stop_snipes_after,
-                "interests": [
-                    {"user_id": interest.user_id, "user_name": interest.user.user_name}
-                    for interest in auction.interests
-                ],  # Get interested users
-                "winners": [
-                    {"user_id": winner.user_id, "user_name": winner.user.user_name}
-                    for winner in auction.winners
-                ],  # Get winning users
-            }
-            result.append(auction_data)
+        auctions_list = AuctionService().prepare_auction_data(auctions)
 
         # Return the data as JSON
-        return jsonify(result), 200
+        return jsonify(auctions_list), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
