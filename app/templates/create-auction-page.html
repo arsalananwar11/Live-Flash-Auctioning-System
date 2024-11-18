@@ -1,0 +1,68 @@
+{% extends "shared/main.html" %}
+
+{% block page_body %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/create-auction-page.css') }}">
+<section class="auction-form">
+    <main class="main-content">
+        <div class="section-header">
+            <h2 class="section-title">Create New Auction</h2>
+        </div>
+
+        <form id="create-auction-form" class="form-container">
+            <div class="form-column">
+                <label for="product-name" class="form-label">Product Name</label>
+                <input type="text" id="product-name" name="product_name" class="form-input" placeholder="Name" required />
+
+                <label for="product-description" class="form-label">Product Description</label>
+                <textarea id="product-description" name="product_description" class="form-textarea" placeholder="Description"></textarea>
+
+                <label for="initial-bid" class="form-label">Initial Bid: ($)</label>
+                <input type="number" id="initial-bid" name="initial_bid" class="form-input bid-input" placeholder="Minimum $1" min="1" required />
+
+                <div class="date-time-container">
+                    <div>
+                        <label for="start-date" class="form-label">Start Date</label>
+                        <input type="date" id="start-date" name="start_date" class="form-input" required />
+                    </div>
+                    <div>
+                        <label for="start-time" class="form-label">Start Time</label>
+                        <input type="time" id="start-time" name="start_time" class="form-input" required />
+                    </div>
+                
+                    <div>
+                        <label for="end-date" class="form-label">End Date</label>
+                        <input type="date" id="end-date" name="end_date" class="form-input" required />
+                    </div>
+                    <div>
+                        <label for="end-time" class="form-label">End Time</label>
+                        <input type="time" id="end-time" name="end_time" class="form-input" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-column">
+                <div class="image-upload-container">
+                    <input type="file" id="image-upload" name="images" multiple accept="image/*" style="display: none;" />
+                    <label for="image-upload" class="upload-text">Click to Upload Images</label>
+                    <div id="image-preview" class="image-preview"></div> <!-- Container for image thumbnails -->
+                </div>
+            </div>
+            
+
+            <div class="terms-container">
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required />
+                    <label for="terms">I accept the terms</label>
+                </div>
+                <a href="#" class="terms-link">Read our T&Cs</a>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="create-button">Create Auction</button>
+                <button type="button" class="cancel-button" onclick="window.location.href='/dashboard'">Cancel</button>
+            </div>
+        </form>
+    </main>
+</section>
+<script src="{{ url_for('static', filename='js/create-auction-page.js') }}"></script>
+{% endblock %}
