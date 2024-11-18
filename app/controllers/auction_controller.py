@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, jsonify, session, request
+from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
@@ -32,31 +32,46 @@ def get_auctions(mode="all_auctions"):
     try:
         # Get the current user if the mode is 'my_auctions'
         user_id = request.args.get("user_id")
-        
+
         if mode == "all_auctions":
             # Fetch all auctions
             auctions = Auction.query.options(
-                joinedload(Auction.interests),  # Eager load auction interests (users interested)
-                joinedload(Auction.winners),  # Eager load auction winners (users who won)
+                joinedload(
+                    Auction.interests
+                ),  # Eager load auction interests (users interested)
+                joinedload(
+                    Auction.winners
+                ),  # Eager load auction winners (users who won)
             ).all()
 
         elif mode == "upcoming_auctions":
             # Fetch all auctions where the end_time is in the future
-            auctions = Auction.query.options(
-                joinedload(Auction.interests),
-                joinedload(Auction.winners),
-            ).filter(Auction.end_time > datetime.utcnow()).all()
+            auctions = (
+                Auction.query.options(
+                    joinedload(Auction.interests),
+                    joinedload(Auction.winners),
+                )
+                .filter(Auction.end_time > datetime.utcnow())
+                .all()
+            )
 
         elif mode == "my_auctions" and user_id:
             # Fetch auctions created by the current user (assuming user_id is passed in the request)
-            auctions = Auction.query.options(
-                joinedload(Auction.interests),
-                joinedload(Auction.winners),
-            ).filter(Auction.created_by == user_id).all()
+            auctions = (
+                Auction.query.options(
+                    joinedload(Auction.interests),
+                    joinedload(Auction.winners),
+                )
+                .filter(Auction.created_by == user_id)
+                .all()
+            )
 
         else:
             # Return an error if the mode is not recognized or if user_id is missing in 'my_auctions'
-            return jsonify({"error": "Invalid mode or missing user_id for 'my_auctions'"}), 400
+            return (
+                jsonify({"error": "Invalid mode or missing user_id for 'my_auctions'"}),
+                400,
+            )
 
         # Prepare the response data
         result = []
