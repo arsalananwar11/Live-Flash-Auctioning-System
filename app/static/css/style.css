@@ -2,6 +2,21 @@ body {
     font-family: "Times New Roman", Georgia, Serif;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  body {
+    flex: 1;
+  }
+  
+  .dashboard, .main-content {
+    flex: 1;
+  }
+
 h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display";
     letter-spacing: 5px;
@@ -10,3 +25,30 @@ h1, h2, h3, h4, h5, h6 {
 .header-title {
     color: white;;
 }
+
+.site-title {
+    margin: auto 0;
+  }
+  .user-info {
+    display: flex;
+    gap: 40px 44px;
+  }
+  .user-name {
+    align-self: start;
+    margin-top: 16px;
+  }
+  .user-avatar {
+    aspect-ratio: 1.08;
+    object-fit: contain;
+    object-position: center;
+    width: 52px;
+    fill: #49454f;
+  }
+
+  footer {
+    margin-top: auto;
+    background-color: #f1f1f1;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+  }

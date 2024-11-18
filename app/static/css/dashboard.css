@@ -1,0 +1,217 @@
+
+
+.dashboard, .main-content {
+    flex: 1;
+}
+
+.dashboard {
+    background-color: #f8f9fa; /* Light background */
+    display: flex;
+    padding: 20px;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    margin-top: 80px;
+}
+
+.nav-and-create {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+}
+
+.tabs-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: #333;
+    font: 500 14px/2;
+}
+
+.tab-selected, .tab-default {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-selected {
+    color: #2b6ed3;
+    border-bottom: 2px solid #2b6ed3;
+}
+
+.create-auction-button {
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    background-color: #1fd715;
+    color: #fff;
+    padding: 12px 20px;
+    font: 400 14px/1;
+    cursor: pointer;
+    border: none;
+}
+
+/* Auction Grid Styles */
+.auction-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: calc(100vh - 200px); /* Adjust based on other elements' heights */
+    padding-right: 10px;
+}
+
+.auction-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.auction-column {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 300px; /* Adjust card width */
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: fit-content
+}
+
+.card-content {
+    padding: 10px;
+}
+
+
+.card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    /* padding: 12px; */
+    border-bottom: 1px solid #e0e0e0;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    color: #333 !important;
+}
+
+.header-title {
+    color: #333;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.avatar {
+    background-color: #eaddff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 500 16px;
+    color: #4f378a;
+}
+
+
+
+.card-media {
+    width: 100%;
+    padding: 16px;
+}
+
+.card-image {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.card-details {
+    padding: 16px;
+    background: #fef7ff;
+    border-radius: 8px;
+}
+
+.card-title {
+    font: 500 16px;
+    margin: 0;
+}
+
+.card-subtitle {
+    font: 400 14px ;
+    color: #49454f;
+    margin: 8px 0 16px;
+}
+
+.card-description {
+    font: 400 14px;
+    color: #49454f;
+}
+
+.card-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.primary-action {
+    background-color: #65558f;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.primary-action:hover {
+    background-color: #504273;
+}
+
+@media (max-width: 991px) {
+    .dashboard {
+        padding-bottom: 100px;
+    }
+
+    .main-content {
+        max-width: 100%;
+        padding: 0 20px;
+    }
+
+    .nav-and-create {
+        max-width: 100%;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .tabs-group {
+        max-width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .auction-grid {
+        max-width: 100%;
+    }
+
+    .auction-row {
+        flex-direction: column;
+    }
+
+    .auction-column {
+        width: 100%;
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "All Auction": [
+        {
+            "organizer": "John Doe",
+            "type": "personal",
+            "product_name": "Antique Vase",
+            "start_end_time": "12:20 PM - 3:00 PM",
+            "description": "A beautiful antique vase from the 19th century."
+        },
+        {
+            "organizer": "Jane Smith",
+            "type": "organization",
+            "product_name": "Vintage Car",
+            "start_end_time": "1:00 PM - 4:00 PM",
+            "description": "A well-maintained vintage car, ready for auction."
+        }
+    ],
+    "Upcoming Auctions": [
+        {
+            "organizer": "Future Auctioneer",
+            "type": "organization",
+            "product_name": "Classic Watch",
+            "start_end_time": "10:00 AM - 11:30 AM",
+            "description": "A classic timepiece perfect for collectors."
+        }
+    ],
+    "My Auction": [
+        {
+            "organizer": "Affan Khamse",
+            "type": "personal",
+            "product_name": "Rare Painting",
+            "start_end_time": "2:00 PM - 5:00 PM",
+            "description": "A rare and exquisite painting by a famous artist."
+        }
+    ]
+}
