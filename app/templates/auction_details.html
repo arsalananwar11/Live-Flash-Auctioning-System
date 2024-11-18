@@ -1,18 +1,18 @@
 {% extends "shared/main.html" %}
 
 {% block page_body %}
-<script src="{{ url_for('static', filename='js/auctiondetails.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auctiondetails.css') }}">
+<script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auction_details.css') }}">
 <main class="auction-page">
     <div class="product-info">
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/07d3df17349a7fe24612154aa00166bf01c75b0ee1a06662800483bf06c85980?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product icon" class="product-icon" />
-        <h2 class="product-name">Product_Name</h2>
+        <h2 class="auction-item">{{ auction.auction_item }}</h2>
     </div>
     <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/21281a090b1e1de893f32056f0a670815b206286aac025adc90c8d604fd08d4c?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product image" class="product-image" />
     
     <div class="product-details">
-        <p class="product-description">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam luctus turpis a eleifend lacinia. Donec tristique ac ante ac bibendum. Donec posuere urna id nulla facilisis faucibus nec et ex. In aliquam, lectus in tristique rutrum, massa dui pulvinar velit, ut hendrerit velit mi a ante. Duis vitae nulla id.
+        <p class="auction-desc">
+            {{ auction.auction_desc }}
         </p>
         <div class="time-remaining">Time Remaining</div>
         <div class="top-bid">TopBid</div>
@@ -40,19 +40,6 @@
     </div>
     
     <div class="bid-buttons">
-        <!-- <button class="bid-button">
-            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/6fa4a0e59d224dfd7dd2e280dd0a456208eb66c446f409fff1c6669a45432da6?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="" class="button-icon" />
-            <span>5%</span>
-        </button>
-        <button class="bid-button">
-            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/6fa4a0e59d224dfd7dd2e280dd0a456208eb66c446f409fff1c6669a45432da6?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="" class="button-icon" />
-            <span>5%</span>
-        </button>
-        <button class="bid-button">
-            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/96b2137e0f0049c9de65b0bfa81bbf074110c59c42e1740b5b9467b8c8efd513?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="" class="button-icon" />
-            <span>5%</span>
-        </button> -->
-        
     </div>
 </main>
 
