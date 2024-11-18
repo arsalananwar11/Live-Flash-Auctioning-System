@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 
 auction_controller = Blueprint("auction_controller", __name__)
 
+
 @auction_controller.route("/auctions")
 @login_required
 def auctions():
