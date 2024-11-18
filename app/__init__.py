@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from app.controllers import login_controller, main_controller, auction_controller
 from dotenv import load_dotenv
 import os
@@ -43,17 +43,6 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(login_controller)
     app.register_blueprint(main_controller)
-    @app.route("/")
-    def index():
-        return render_template(
-            "index.html", message="Welcome to Live Flash Auctioning System"
-        )
-
-    # Dashboard route
-    @app.route("/dashboard")
-    def dashboard():
-        return render_template("dashboard.html")
-
     app.register_blueprint(auction_controller)
 
     return app

@@ -28,17 +28,14 @@ function loadAuctionData(tabTitle) {
                     const auctionCard = `
                         <article class="auction-column">
                             <div class="auction-card">
-                                <div class="card-background"></div>
                                 <div class="card-content">
                                     <header class="card-header">
-                                        <div class="header-content">
-                                            <div class="avatar">
-                                                <div class="avatar-background">${auction.organizer.charAt(0)}</div>
-                                            </div>
-                                            <div class="header-text">
-                                                <h2 class="header-title">${auction.organizer}</h2>
-                                                <p class="header-subtitle">${auction.type}</p>
-                                            </div>
+                                        <div class="avatar">
+                                            <div class="avatar-background">${auction.organizer.charAt(0)}</div>
+                                        </div>
+                                        <div class="header-text">
+                                            <h2 class="header-title">${auction.product_name}</h2>
+                                            <p class="header-subtitle">${auction.type}</p>
                                         </div>
                                     </header>
                                     <div class="card-media">
@@ -46,7 +43,6 @@ function loadAuctionData(tabTitle) {
                                     </div>
                                     <div class="card-details">
                                         <div class="card-headline">
-                                            <h3 class="card-title">${auction.product_name}</h3>
                                             <p class="card-subtitle">Start/End Time: ${auction.start_end_time}</p>
                                         </div>
                                         <p class="card-description">${auction.description}</p>

@@ -1,13 +1,4 @@
-html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-}
 
-body {
-    flex: 1;
-}
 
 .dashboard, .main-content {
     flex: 1;
@@ -45,7 +36,7 @@ body {
     align-items: center;
     gap: 20px;
     color: #333;
-    font: 500 14px/2 Roboto, sans-serif;
+    font: 500 14px/2;
 }
 
 .tab-selected, .tab-default {
@@ -62,13 +53,13 @@ body {
     border-bottom: 2px solid #2b6ed3;
 }
 
-.create-button {
+.create-auction-button {
     text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 8px;
     background-color: #1fd715;
     color: #fff;
     padding: 12px 20px;
-    font: 400 14px/1 Roboto, sans-serif;
+    font: 400 14px/1;
     cursor: pointer;
     border: none;
 }
@@ -99,18 +90,29 @@ body {
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: fit-content
 }
 
 .card-content {
-    padding: 20px;
+    padding: 10px;
 }
+
 
 .card-header {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px;
+    align-items: baseline;
+    gap: 10px;
+    /* padding: 12px; */
     border-bottom: 1px solid #e0e0e0;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    color: #333 !important;
+}
+
+.header-title {
+    color: #333;
+    font-size: 22px;
+    font-weight: 900;
 }
 
 .avatar {
@@ -121,13 +123,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font: 500 16px Roboto, sans-serif;
+    font: 500 16px;
     color: #4f378a;
 }
 
-.header-text {
-    flex: 1;
-}
+
 
 .card-media {
     width: 100%;
@@ -147,18 +147,18 @@ body {
 }
 
 .card-title {
-    font: 500 16px Roboto, sans-serif;
+    font: 500 16px;
     margin: 0;
 }
 
 .card-subtitle {
-    font: 400 14px Roboto, sans-serif;
+    font: 400 14px ;
     color: #49454f;
     margin: 8px 0 16px;
 }
 
 .card-description {
-    font: 400 14px Roboto, sans-serif;
+    font: 400 14px;
     color: #49454f;
 }
 
