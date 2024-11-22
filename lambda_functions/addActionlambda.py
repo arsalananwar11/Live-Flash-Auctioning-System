@@ -95,9 +95,9 @@ def lambda_handler(event, context):
         with connection.cursor() as cursor:
             insert_query = """
                 INSERT INTO auction (
-                    auction_id, auction_item, auction_desc, base_price, 
-                    start_time, end_time, is_active, created_by, created_on, 
-                    modified_on
+                auction_id, auction_item, auction_desc, base_price, 
+                start_time, end_time, is_active, created_by, created_on, 
+                modified_on
                 ) VALUES (
                     %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
                     %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
