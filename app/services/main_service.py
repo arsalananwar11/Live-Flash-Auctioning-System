@@ -1,3 +1,4 @@
+import base64
 from flask import session
 import requests
 import os
@@ -15,6 +16,12 @@ class MainService:
 
     @staticmethod
     def create_auction(auction_data):
+        images_base64 = []
+        for image in auction_data["images"]:
+            image_base64 = base64.b64encode(image.read()).decode("utf-8")
+            images_base64.append(image_base64)
+        
+
         auction_payload = {
             "auction_item": auction_data["auction_item"],
             "auction_desc": auction_data["auction_desc"],
@@ -26,36 +33,44 @@ class MainService:
                 "default_time_increment_before"
             ],
             "stop_snipes_after": auction_data["stop_snipes_after"],
-            "product_images": auction_data["images_base64"],
+            "product_images": images_base64,
             "created_by": session["user_id"],
         }
 
         try:
-            url = f"{api_gateway_url}/auctions"
+            url = f"{api_gateway_url}/add-auction"
             # print(f"url: {url}")
-            # print(f"Creating auction with data: {auction_payload}")
+            # print(f"Final auction Payload data: {auction_payload}")
             response = requests.post(
                 url, json=auction_payload, headers={"Content-Type": "application/json"}
-            )
-            # print(f"Response: {response.status_code}")
-            response.raise_for_status()
-            response_data = response.json()
+            )            
+            # response.raise_for_status()
+            try:
+                response_data = response.json()
 
-            if response.status_code == 201 and "auction_item" in response_data:
-                return {
-                    "status": "success",
-                    "data": {
-                        "auction_item": response_data["auction_item"],
-                        "message": response_data.get(
-                            "message", "Auction created successfully"
-                        ),
-                    },
-                }
-            else:
+                if response.status_code == 201:
+                    return {
+                        "status": "success",
+                        "status_code": 201,
+                        "data": {
+                            "auction_id": response_data["data"].get("auction_id"),
+                            "message": response_data["data"].get("message", "Auction created successfully"),
+                        },
+                    }
+                else:
+                    return {
+                        "status": "failure",
+                        "status_code": response.status_code,
+                        "error": response_data.get("status_message", "Unknown error occurred"),
+                        "details": response_data,
+                    }
+
+            except ValueError as e:  
                 return {
                     "status": "failure",
-                    "error": "Auction creation failed",
-                    "details": response_data,
+                    "status_code": response.status_code,
+                    "error": "Invalid JSON response",
+                    "details": response.text,  # Provide raw text for debugging
                 }
 
         except requests.exceptions.RequestException as e:

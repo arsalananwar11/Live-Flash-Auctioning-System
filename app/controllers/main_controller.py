@@ -1,7 +1,9 @@
+import base64
 from datetime import datetime
 import os
+import traceback
 import boto3
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, session
 
 from app.services.main_service import MainService
 from flask_login import login_required
@@ -54,7 +56,7 @@ def get_presigned_url():
         presigned_url = s3_client.generate_presigned_url(
             "put_object",
             Params={"Bucket": S3_BUCKET, "Key": filename},
-            ExpiresIn=3600,
+            ExpiresIn=3600,  
         )
         s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
 
@@ -68,46 +70,41 @@ def get_presigned_url():
 def create_auction():
     print("Creating auction...")
     datetime_format = "%Y-%m-%d %H:%M"
-
+    
     try:
         # Collect form data
+        start_date = request.form.get('start_date')
+        start_time = request.form.get('start_time')
+        start_datetime = f"{start_date} {start_time}"
+        end_date = request.form.get('end_date')
+        end_time = request.form.get('end_time')
+        end_datetime = f"{end_date} {end_time}"
+        image_file = request.files.getlist("images")
 
         auction_data = {
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(
-                f"{request.form.get('start_date')} {request.form.get('start_time')}",
-                datetime_format,
-            ).isoformat(),
-            "end_time": datetime.strptime(
-                f"{request.form.get('end_date')} {request.form.get('end_time')}",
-                datetime_format,
-            ).isoformat(),
-            "default_time_increment": int(
-                request.form.get("default_time_increment", 5)
-            ),
-            "default_time_increment_before": int(
-                request.form.get("default_time_increment_before", 5)
-            ),
+            "start_time": datetime.strptime(start_datetime, datetime_format).isoformat(),
+            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
+            "default_time_increment": int(request.form.get("default_time_increment", 5)),
+            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
             "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
-            "images_base64": request.form.get("images"),
+            "images": image_file,
         }
 
         # Call the service to create auction
-        # print(f"Creating auction with data: {auction_data}")
         response = MainService().create_auction(auction_data)
-
         # response from service
-        if response.status_code == 201:
+        if response.get('status_code') == 201:
             return jsonify({"message": "Auction created successfully!"}), 200
         else:
-            return (
-                jsonify(
-                    {"error": "Failed to create auction", "details": response.json()}
-                ),
-                response.status_code,
-            )
+            return jsonify({
+            "error": "Failed to create auction",
+            "details": response.json()
+            }), response.status_code
 
     except Exception as e:
+        print("Exception occurred:", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
