@@ -3,7 +3,6 @@ from flask import session
 import requests
 import os
 
-
 api_gateway_url = os.getenv("API_GATEWAY_URL")
 
 
@@ -20,7 +19,6 @@ class MainService:
         for image in auction_data["images"]:
             image_base64 = base64.b64encode(image.read()).decode("utf-8")
             images_base64.append(image_base64)
-        
 
         auction_payload = {
             "auction_item": auction_data["auction_item"],
@@ -43,7 +41,7 @@ class MainService:
             # print(f"Final auction Payload data: {auction_payload}")
             response = requests.post(
                 url, json=auction_payload, headers={"Content-Type": "application/json"}
-            )            
+            )
             # response.raise_for_status()
             try:
                 response_data = response.json()
@@ -54,18 +52,22 @@ class MainService:
                         "status_code": 201,
                         "data": {
                             "auction_id": response_data["data"].get("auction_id"),
-                            "message": response_data["data"].get("message", "Auction created successfully"),
+                            "message": response_data["data"].get(
+                                "message", "Auction created successfully"
+                            ),
                         },
                     }
                 else:
                     return {
                         "status": "failure",
                         "status_code": response.status_code,
-                        "error": response_data.get("status_message", "Unknown error occurred"),
+                        "error": response_data.get(
+                            "status_message", "Unknown error occurred"
+                        ),
                         "details": response_data,
                     }
 
-            except ValueError as e:  
+            except ValueError:
                 return {
                     "status": "failure",
                     "status_code": response.status_code,

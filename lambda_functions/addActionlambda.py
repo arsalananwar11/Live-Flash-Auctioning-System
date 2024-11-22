@@ -6,30 +6,32 @@ import base64
 from datetime import datetime
 import pymysql
 
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 
 # RDS settings from environment variables
-proxy_host_name = os.environ['DB_HOSTNAME']
-port = int(os.environ['DB_PORT'])
-db_name = os.environ['DB_NAME']
-db_user_name = os.environ['DB_USERNAME']
-S3_BUCKET_NAME = os.environ['S3_BUCKET_NAME']
+proxy_host_name = os.environ["DB_HOSTNAME"]
+port = int(os.environ["DB_PORT"])
+db_name = os.environ["DB_NAME"]
+db_user_name = os.environ["DB_USERNAME"]
+S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
+
 
 def connect_to_rds():
     try:
-        
+
         connection = pymysql.connect(
             host=proxy_host_name,
             user=db_user_name,
             password="RDSDatabaseCloudProject",  # Use your actual password
             database=db_name,
             port=port,
-            cursorclass=pymysql.cursors.DictCursor
+            cursorclass=pymysql.cursors.DictCursor,
         )
         return connection
     except Exception as e:
         print(f"Error connecting to RDS: {str(e)}")
         raise e
+
 
 def upload_to_s3(base64_data, auction_id, filename):
     try:
@@ -45,6 +47,7 @@ def upload_to_s3(base64_data, auction_id, filename):
     except Exception as e:
         raise Exception(f"Failed to upload to S3: {str(e)}")
 
+
 def lambda_handler(event, context):
     # Log the incoming event for debugging
     print("Received event:", json.dumps(event))
@@ -55,10 +58,10 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body", {}))
         if not body or body == {}:
             body = json.dumps(event)
-            
+
         if isinstance(body, str):  # If the body is a string, parse it as JSON
             body = json.loads(body)
-        
+
         # Generate auction UUID
         auction_id = str(uuid.uuid4())
 
@@ -72,17 +75,22 @@ def lambda_handler(event, context):
         created_by = body.get("created_by")
 
         # Validate fields
-        if not auction_item and not auction_desc and not base_price and not start_time and not end_time:
+        if (
+            not auction_item
+            and not auction_desc
+            and not base_price
+            and not start_time
+            and not end_time
+        ):
             return {
                 "statusCode": 400,
                 "body": json.dumps({"error": "Missing required fields."}),
             }
 
-
         for idx, base64_image in enumerate(product_images):
             filename = f"image_{idx + 1}.jpg"
             upload_to_s3(base64_image, auction_id, filename)
-            
+
         # Insert auction and images into the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
@@ -97,32 +105,37 @@ def lambda_handler(event, context):
                     %(created_on)s, %(modified_on)s
                 )
             """
-            cursor.execute(insert_query, {
-                "auction_id": auction_id,
-                "auction_item": auction_item,
-                "auction_desc": auction_desc,
-                "base_price": base_price,
-                "start_time": start_time,
-                "end_time": end_time,
-                "is_active": 0,
-                "created_by": created_by,
-                "created_on": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                "modified_on": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            })
+            cursor.execute(
+                insert_query,
+                {
+                    "auction_id": auction_id,
+                    "auction_item": auction_item,
+                    "auction_desc": auction_desc,
+                    "base_price": base_price,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "is_active": 0,
+                    "created_by": created_by,
+                    "created_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "modified_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                },
+            )
             connection.commit()
 
         # Success response
         return {
             "statusCode": 201,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({
-                "status_code": 201,
-                "status_message": "Auction created successfully.",
-                "data": {
-                    "auction_id": auction_id,
-                    "message": "Your auction has been listed successfully."
+            "body": json.dumps(
+                {
+                    "status_code": 201,
+                    "status_message": "Auction created successfully.",
+                    "data": {
+                        "auction_id": auction_id,
+                        "message": "Your auction has been listed successfully.",
+                    },
                 }
-            })
+            ),
         }
 
     except Exception as e:
