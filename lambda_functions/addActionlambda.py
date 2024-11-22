@@ -74,7 +74,6 @@ def lambda_handler(event, context):
         product_images = body.get("product_images", [])
         created_by = body.get("created_by")
 
-        # Validate fields
         if (
             not auction_item
             and not auction_desc
