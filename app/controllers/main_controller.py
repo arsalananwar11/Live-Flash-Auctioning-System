@@ -1,11 +1,17 @@
 import base64
-from flask import Blueprint, jsonify, render_template, request
+from datetime import datetime
+import os
+import boto3
+from flask import Blueprint, jsonify, render_template, request, session
+
 from app.services.main_service import MainService
 from flask_login import login_required
 
 
 main_controller = Blueprint("main_controller", __name__)
 
+S3_BUCKET = os.getenv("S3_BUCKET_NAME")
+s3_client = boto3.client("s3")
 
 @main_controller.route("/")
 def index():
@@ -36,38 +42,61 @@ def open_create_auction():
     return render_template("create-auction-page.html")
 
 
+@main_controller.route("/get-presigned-url", methods=["POST"])
+def get_presigned_url():
+    try:
+        data = request.json
+        filename = data.get("filename")
+        if not filename:
+            return jsonify({"error": "Filename is required"}), 400
+
+        # Generate pre-signed URL
+        presigned_url = s3_client.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": S3_BUCKET, "Key": filename},
+            ExpiresIn=3600,  
+        )
+        s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
+
+        return jsonify({"presigned_url": presigned_url, "s3_url": s3_url}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @main_controller.route("/create-auction", methods=["POST"])
 @login_required
 def create_auction():
+    print("Creating auction...")
+    datetime_format = "%Y-%m-%d %H:%M"
+    
     try:
-        # Get form data
-        # product_name = request.form.get("product_name")
-        # product_description = request.form.get("product_description")
-        # start_date = request.form.get("start_date")
-        # start_time = request.form.get("start_time")
-        # end_date = request.form.get("end_date")
-        # end_time = request.form.get("end_time")
-        # initial_bid = request.form.get("initial_bid")
-        # terms_accepted = request.form.get("terms")
-        images_base64 = request.form.get(
-            "images"
-        )  # This will be a JSON string of Base64 images
+        # Collect form data
 
-        # Process the images
-        if images_base64:
-            images = eval(images_base64)  # Convert JSON string to Python list
-            for i, img in enumerate(images):
-                # Save images or process them
-                with open(f"image_{i}.png", "wb") as f:
-                    f.write(base64.b64decode(img))
+        
+        auction_data = {
+            "auction_item": request.form.get("auction_item"),
+            "auction_desc": request.form.get("auction_desc"),
+            "base_price": float(request.form.get("base_price")),
+            "start_time": datetime.strptime(f"{request.form.get('start_date')} {request.form.get('start_time')}",datetime_format).isoformat(),
+            "end_time": datetime.strptime(f"{request.form.get('end_date')} {request.form.get('end_time')}",datetime_format).isoformat(),
+            "default_time_increment": int(request.form.get("default_time_increment", 5)),
+            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
+            "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
+            "images_base64": request.form.get("images")
+        }
 
-        # print(f"product_name = {product_name} and product_description = {product_description}")
-        # print(f"start_date  = {start_date} and start time = {start_time}")
-        # print(f"end_date  = {end_date} and end time = {end_time}")
-        # print(f"initial bi = {initial_bid}")
+        # Call the service to create auction
+        # print(f"Creating auction with data: {auction_data}")
+        response = MainService().create_auction(auction_data)
 
-        # Perform any additional processing or database insertion
-        return jsonify({"message": "Auction created successfully!"}), 200
+        # response from service
+        if response.status_code == 201:
+            return jsonify({"message": "Auction created successfully!"}), 200
+        else:
+            return jsonify({
+            "error": "Failed to create auction",
+            "details": response.json()
+            }), response.status_code
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
