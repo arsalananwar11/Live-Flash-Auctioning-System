@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import session
 import requests
 import os
@@ -23,22 +22,22 @@ class MainService:
             "start_time": auction_data["start_time"],
             "end_time": auction_data["end_time"],
             "default_time_increment": auction_data["default_time_increment"],
-            "default_time_increment_before": auction_data["default_time_increment_before"],
+            "default_time_increment_before": auction_data[
+                "default_time_increment_before"
+            ],
             "stop_snipes_after": auction_data["stop_snipes_after"],
             "product_images": auction_data["images_base64"],
             "created_by": session["user_id"],
         }
-        
+
         try:
             url = f"{api_gateway_url}/auctions"
-            print(f"url: {url}")
+            # print(f"url: {url}")
             # print(f"Creating auction with data: {auction_payload}")
             response = requests.post(
-                url,
-                json=auction_payload,
-                headers={'Content-Type': 'application/json'}
+                url, json=auction_payload, headers={"Content-Type": "application/json"}
             )
-            print(f"Response: {response.status_code}")
+            # print(f"Response: {response.status_code}")
             response.raise_for_status()
             response_data = response.json()
 
@@ -47,19 +46,17 @@ class MainService:
                     "status": "success",
                     "data": {
                         "auction_item": response_data["auction_item"],
-                        "message": response_data.get("message", "Auction created successfully")
-                    }
+                        "message": response_data.get(
+                            "message", "Auction created successfully"
+                        ),
+                    },
                 }
             else:
                 return {
                     "status": "failure",
                     "error": "Auction creation failed",
-                    "details": response_data
+                    "details": response_data,
                 }
 
         except requests.exceptions.RequestException as e:
-            return {
-                "status": "failure",
-                "error": "Request failed",
-                "details": str(e)
-            }
+            return {"status": "failure", "error": "Request failed", "details": str(e)}
