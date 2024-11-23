@@ -1,17 +1,10 @@
 from datetime import datetime
-import os
 import traceback
-import boto3
 from flask import Blueprint, jsonify, render_template, request
-
 from app.services.main_service import MainService
 from flask_login import login_required
 
-
 main_controller = Blueprint("main_controller", __name__)
-
-S3_BUCKET = os.getenv("S3_BUCKET_NAME")
-s3_client = boto3.client("s3")
 
 
 @main_controller.route("/")
@@ -41,27 +34,6 @@ def open_dashboard():
 @login_required
 def open_create_auction():
     return render_template("create-auction-page.html")
-
-
-@main_controller.route("/get-presigned-url", methods=["POST"])
-def get_presigned_url():
-    try:
-        data = request.json
-        filename = data.get("filename")
-        if not filename:
-            return jsonify({"error": "Filename is required"}), 400
-
-        # Generate pre-signed URL
-        presigned_url = s3_client.generate_presigned_url(
-            "put_object",
-            Params={"Bucket": S3_BUCKET, "Key": filename},
-            ExpiresIn=3600,
-        )
-        s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
-
-        return jsonify({"presigned_url": presigned_url, "s3_url": s3_url}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 @main_controller.route("/create-auction", methods=["POST"])
