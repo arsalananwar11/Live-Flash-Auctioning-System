@@ -39,11 +39,8 @@ def open_create_auction():
 @main_controller.route("/create-auction", methods=["POST"])
 @login_required
 def create_auction():
-    print("Creating auction...")
     datetime_format = "%Y-%m-%d %H:%M"
-
     try:
-        # Collect form data
         start_date = request.form.get("start_date")
         start_time = request.form.get("start_time")
         start_datetime = f"{start_date} {start_time}"
@@ -72,7 +69,6 @@ def create_auction():
 
         # Call the service to create auction
         response = MainService().create_auction(auction_data)
-        # response from service
         if response.get("status_code") == 201:
             return jsonify({"message": "Auction created successfully!"}), 200
         else:

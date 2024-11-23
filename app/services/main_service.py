@@ -37,12 +37,10 @@ class MainService:
 
         try:
             url = f"{api_gateway_url}/add-auction"
-            # print(f"url: {url}")
-            # print(f"Final auction Payload data: {auction_payload}")
             response = requests.post(
                 url, json=auction_payload, headers={"Content-Type": "application/json"}
             )
-            # response.raise_for_status()
+
             try:
                 response_data = response.json()
 
@@ -72,7 +70,7 @@ class MainService:
                     "status": "failure",
                     "status_code": response.status_code,
                     "error": "Invalid JSON response",
-                    "details": response.text,  # Provide raw text for debugging
+                    "details": response.text,
                 }
 
         except requests.exceptions.RequestException as e:
