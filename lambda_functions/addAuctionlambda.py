@@ -23,7 +23,7 @@ def connect_to_rds():
         connection = pymysql.connect(
             host=proxy_host_name,
             user=db_user_name,
-            password=db_password, 
+            password=db_password,
             database=db_name,
             port=port,
             cursorclass=pymysql.cursors.DictCursor,
