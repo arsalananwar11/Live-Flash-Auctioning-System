@@ -163,4 +163,3 @@ cython_debug/
 
 cloud
 pymysql-layer
-migrations
