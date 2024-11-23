@@ -1,260 +1,278 @@
-swagger: '2.0'
+openapi: 3.0.3
 info:
   title: Live Flash Auctioning System API
-  description: 'Live Flash Auctioning System built using the AWS Cloud Services as part of the Cloud Computing course at New York University.'
+  description: Live Flash Auctioning System built using AWS Cloud Services as part of the Cloud Computing course at New York University.
   version: 1.0.0
-schemes:
-  - https
-basePath: /v1
-produces:
-  - application/json
+servers:
+  - url: https://your-api-gateway-url/v1
+    description: AWS API Gateway
+
 paths:
   /add-auction:
     post:
-      summary: API to create an auction
-      description: |
-        This API takes in auction details from the client and returns
-        a standardized operation response indicating success or failure.
+      summary: Create a new auction
+      description: >
+        This API allows clients to create a new auction by providing all necessary details
+        such as the item name, description, start/end times, and additional configuration.
       tags:
-        - Auction CRUD
-      operationId: addAuction
-      produces:
-        - application/json
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                $ref: '#/definitions/AddAuctionData'
+        - Auctions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAuctionData'
       responses:
         '201':
           description: Auction Created Successfully
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 201
-              status_message:
-                type: string
-                example: "Auction created successfully."
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
-                example:
-                  auction_id: "7c6931df-415c-4cae-8620-0da4b792cb58"
-                  message: "Your auction has been listed successfully."
+                properties:
+                  status_code:
+                    type: integer
+                    example: 201
+                  status_message:
+                    type: string
+                    example: Auction created successfully.
+                  data:
+                    type: object
+                    properties:
+                      auction_id:
+                        type: string
+                        example: "7c6931df-415c-4cae-8620-0da4b792cb58"
+                      message:
+                        type: string
+                        example: Your auction has been listed successfully.
         '401':
-          description: Unauthorized. Access token is missing or invalid.
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 401
-              status_message:
-                type: string
-                example: "Unauthorized"
-              error_details:
-                type: object
-                example:
-                  error_code: "INVALID_TOKEN"
-                  error_message: "Access token is invalid or missing."
+          description: Unauthorized - Invalid or missing token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
         '403':
-          description: Forbidden. You do not have permission to access this resource.
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 403
-              status_message:
-                type: string
-                example: "Forbidden"
-              error_details:
-                type: object
-                example:
-                  error_code: "ACCESS_DENIED"
-                  error_message: "You do not have permission to perform this action."
+          description: Forbidden - User does not have permission to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
         '500':
-          description: Unexpected error
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 500
-              status_message:
-                type: string
-                example: "Internal Server Error"
-              error_details:
-                type: object
-                example:
-                  error_code: "SERVER_ERROR"
-                  error_message: "An unexpected error occurred. Please try again later."
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
 
-  /get-auctions/{mode}:
+  /get-auctions:
     get:
-      summary: API to fetch all auctions
-      description: |
-        This API gets all the auctions from the backend depending upon selected  mode.
-        Mode takes 3 values: 
-          - 'all_auctions': Fetch all auctions (DEFAULT)
-          - 'upcoming_auctions': Fetch all upcoming auctions 
-          - 'my_auctions': Fetch all my auctions
+      summary: Fetch auctions by mode
+      description: >
+        Fetch auctions based on the selected mode. The mode parameter can take the following values:
+        - `all_auctions`: Fetch all auctions (default).
+        - `upcoming_auctions`: Fetch upcoming auctions.
+        - `my_auctions`: Fetch auctions created by the current user.
       tags:
-        - Auction CRUD
-      operationId: getAuction
-      produces:
-        - application/json
+        - Auctions
       parameters:
-        - in: path
-          name: mode
+        - name: mode
+          in: query
           required: true
-          type: string
-          default: 'all_auctions'
+          description: The mode for fetching auctions.
+          schema:
+            type: string
+            enum: [all_auctions, upcoming_auctions, my_auctions]
+            default: all_auctions
       responses:
         '200':
-          description: Success response
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 200
-              status_message:
-                type: string
-                example: "Auctions fetched successfully."
-              data:
-                type: array
-                items:
-                  type: string
-                example: [
-                  {
-                    id: "7c6931df-415c-4cae-8620-0da4b792cb58",
-                    product_name: "Antique Fan",
-                    product_description: "A rare collector's item.",
-                    product_images: ["https://example.com/image1.jpg"],
-                    base_price: 250.0,
-                    start_time: "2024-11-16T09:00:00Z",
-                    end_time: "2024-11-17T18:00:00Z",
-                    is_active: true,
-                    created_by: "johndoe@gmail.com"
-                  }
-                ]
+          description: Auctions fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_code:
+                    type: integer
+                    example: 200
+                  status_message:
+                    type: string
+                    example: Auctions fetched successfully.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "7c6931df-415c-4cae-8620-0da4b792cb58"
+                        auction_item:
+                          type: string
+                          example: Antique Fan
+                        auction_desc:
+                          type: string
+                          example: A rare collector's item.
+                        product_images:
+                          type: array
+                          items:
+                            type: string
+                            example: https://example.com/image1.jpg
+                        base_price:
+                          type: number
+                          example: 250.0
+                        start_time:
+                          type: string
+                          format: date-time
+                          example: "2024-11-16T09:00:00Z"
+                        end_time:
+                          type: string
+                          format: date-time
+                          example: "2024-11-17T18:00:00Z"
+                        default_time_increment:
+                          type: integer
+                          example: 5
+                        default_time_increment_before:
+                          type: integer
+                          example: 10
+                        stop_snipes_after:
+                          type: integer
+                          example: 10
+                        created_by:
+                          type: string
+                          example: johndoe@example.com
         '401':
-          description: Unauthorized. Access token is missing or invalid.
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 401
-              status_message:
-                type: string
-                example: "Unauthorized"
-              error_details:
-                type: object
-                example:
-                  error_code: "INVALID_TOKEN"
-                  error_message: "Access token is invalid or missing."
+          description: Unauthorized - Invalid or missing token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
         '403':
-          description: Forbidden. You do not have permission to access this resource.
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 403
-              status_message:
-                type: string
-                example: "Forbidden"
-              error_details:
-                type: object
-                example:
-                  error_code: "ACCESS_DENIED"
-                  error_message: "You do not have permission to access auctions."
+          description: Forbidden - User does not have permission to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
         '404':
-          description: Not Found. No auctions were found for the given mode.
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 404
-              status_message:
-                type: string
-                example: "Not Found"
-              error_details:
+          description: No auctions found for the given mode.
+          content:
+            application/json:
+              schema:
                 type: object
-                example:
-                  error_code: "AUCTIONS_NOT_FOUND"
-                  error_message: "No auctions found for the mode 'all_auctions'."
+                properties:
+                  status_code:
+                    type: integer
+                    example: 404
+                  status_message:
+                    type: string
+                    example: No auctions found for the mode 'all_auctions'.
+                  error_details:
+                    type: object
+                    properties:
+                      error_code:
+                        type: string
+                        example: AUCTIONS_NOT_FOUND
+                      error_message:
+                        type: string
+                        example: No auctions found for the mode 'all_auctions'.
         '500':
-          description: Unexpected error
-          schema:
-            type: object
-            properties:
-              status_code:
-                type: integer
-                example: 500
-              status_message:
-                type: string
-                example: "Internal Server Error"
-              error_details:
-                type: object
-                example:
-                  error_code: "SERVER_ERROR"
-                  error_message: "An unexpected error occurred. Please try again later."
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerErrorResponse'
 
-definitions:
-  AddAuctionData:
-    type: object
-    properties:
-      product_name:
-        type: string
-        example: Antique Fan
-      product_description:
-        type: string
-        example: An antique table fan, in excellent condition, a rare collector's item.
-      product_images:
-        type: array
-        items:
+components:
+  schemas:
+    AddAuctionData:
+      type: object
+      properties:
+        auction_item:
           type: string
-        example:
-          - "https://example.com/images/antique-fan1.jpg"
-          - "https://example.com/images/antique-fan2.jpg"
-      base_price:
-        type: number
-        example: 250.0
-      start_time:
-        type: string
-        format: datetime
-        example: "2024-11-16T09:00:00Z"
-      end_time:
-        type: string
-        format: datetime
-        example: "2024-11-17T18:00:00Z"
-      created_time:
-        type: string
-        format: datetime
-        example: "2024-11-15T12:00:00Z"
-      modified_time:
-        type: string
-        format: datetime
-        example: "2024-11-15T12:30:00Z"
-      default_time_increment:
-        type: integer
-        example: 300
-      default_time_increment_before:
-        type: integer
-        example: 10
-      is_active:
-        type: boolean
-        example: true
-      created_by:
-        type: string
-        example: "jogndoe@gmail.com"
+          example: Antique Fan
+        auction_desc:
+          type: string
+          example: An antique table fan, in excellent condition, a rare collector's item.
+        product_images:
+          type: array
+          items:
+            type: string
+            example: "https://example.com/images/antique-fan1.jpg"
+        base_price:
+          type: number
+          example: 250.0
+        start_time:
+          type: string
+          format: date-time
+          example: "2024-11-16T09:00:00Z"
+        end_time:
+          type: string
+          format: date-time
+          example: "2024-11-17T18:00:00Z"
+        default_time_increment:
+          type: integer
+          example: 5
+        default_time_increment_before:
+          type: integer
+          example: 10
+        stop_snipes_after:
+          type: integer
+          example: 10
+        is_active:
+          type: boolean
+          example: true
+        created_by:
+          type: string
+          example: johndoe@example.com
+    UnauthorizedResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+          example: 401
+        status_message:
+          type: string
+          example: Unauthorized
+        error_details:
+          type: object
+          properties:
+            error_code:
+              type: string
+              example: INVALID_TOKEN
+            error_message:
+              type: string
+              example: Access token is invalid or missing.
+    ForbiddenResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+          example: 403
+        status_message:
+          type: string
+          example: Forbidden
+        error_details:
+          type: object
+          properties:
+            error_code:
+              type: string
+              example: ACCESS_DENIED
+            error_message:
+              type: string
+              example: You do not have permission to perform this action.
+    InternalServerErrorResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+          example: 500
+        status_message:
+          type: string
+          example: Internal Server Error
+        error_details:
+          type: object
+          properties:
+            error_code:
+              type: string
+              example: SERVER_ERROR
+            error_message:
+              type: string
+              example: An unexpected error occurred. Please try again later.

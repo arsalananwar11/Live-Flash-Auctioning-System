@@ -1,8 +1,8 @@
-import base64
+from datetime import datetime
+import traceback
 from flask import Blueprint, jsonify, render_template, request
 from app.services.main_service import MainService
 from flask_login import login_required
-
 
 main_controller = Blueprint("main_controller", __name__)
 
@@ -39,35 +39,47 @@ def open_create_auction():
 @main_controller.route("/create-auction", methods=["POST"])
 @login_required
 def create_auction():
+    datetime_format = "%Y-%m-%d %H:%M"
     try:
-        # Get form data
-        # product_name = request.form.get("product_name")
-        # product_description = request.form.get("product_description")
-        # start_date = request.form.get("start_date")
-        # start_time = request.form.get("start_time")
-        # end_date = request.form.get("end_date")
-        # end_time = request.form.get("end_time")
-        # initial_bid = request.form.get("initial_bid")
-        # terms_accepted = request.form.get("terms")
-        images_base64 = request.form.get(
-            "images"
-        )  # This will be a JSON string of Base64 images
+        start_date = request.form.get("start_date")
+        start_time = request.form.get("start_time")
+        start_datetime = f"{start_date} {start_time}"
+        end_date = request.form.get("end_date")
+        end_time = request.form.get("end_time")
+        end_datetime = f"{end_date} {end_time}"
+        image_file = request.files.getlist("images")
 
-        # Process the images
-        if images_base64:
-            images = eval(images_base64)  # Convert JSON string to Python list
-            for i, img in enumerate(images):
-                # Save images or process them
-                with open(f"image_{i}.png", "wb") as f:
-                    f.write(base64.b64decode(img))
+        auction_data = {
+            "auction_item": request.form.get("auction_item"),
+            "auction_desc": request.form.get("auction_desc"),
+            "base_price": float(request.form.get("base_price")),
+            "start_time": datetime.strptime(
+                start_datetime, datetime_format
+            ).isoformat(),
+            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
+            "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
+            "images": image_file,
+        }
 
-        # print(f"product_name = {product_name} and product_description = {product_description}")
-        # print(f"start_date  = {start_date} and start time = {start_time}")
-        # print(f"end_date  = {end_date} and end time = {end_time}")
-        # print(f"initial bi = {initial_bid}")
-
-        # Perform any additional processing or database insertion
-        return jsonify({"message": "Auction created successfully!"}), 200
+        # Call the service to create auction
+        response = MainService().create_auction(auction_data)
+        if response.get("status_code") == 201:
+            return jsonify({"message": "Auction created successfully!"}), 200
+        else:
+            return (
+                jsonify(
+                    {"error": "Failed to create auction", "details": response.json()}
+                ),
+                response.status_code,
+            )
 
     except Exception as e:
+        print("Exception occurred:", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
