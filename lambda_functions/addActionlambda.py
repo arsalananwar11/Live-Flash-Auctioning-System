@@ -13,6 +13,7 @@ proxy_host_name = os.environ["DB_HOSTNAME"]
 port = int(os.environ["DB_PORT"])
 db_name = os.environ["DB_NAME"]
 db_user_name = os.environ["DB_USERNAME"]
+db_password = os.environ["DB_PASSWORD"]
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 
 
@@ -22,7 +23,7 @@ def connect_to_rds():
         connection = pymysql.connect(
             host=proxy_host_name,
             user=db_user_name,
-            password="RDSDatabaseCloudProject",  # Use your actual password
+            password=db_password, 
             database=db_name,
             port=port,
             cursorclass=pymysql.cursors.DictCursor,
