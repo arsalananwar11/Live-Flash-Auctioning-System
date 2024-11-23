@@ -1,12 +1,15 @@
-from flask import Flask
+from flask import Flask, session
+from flask_login import LoginManager
 from app.controllers import login_controller, main_controller, auction_controller
 from dotenv import load_dotenv
 import os
+from app.controllers.login_controller import User
 from flask_migrate import Migrate
 from app.models import db
 
 # Load environment variables from .env file
 load_dotenv()
+login_manager = LoginManager()
 
 
 def create_app():
@@ -54,5 +57,18 @@ def create_app():
     app.register_blueprint(login_controller)
     app.register_blueprint(main_controller)
     app.register_blueprint(auction_controller)
+    # Setting Login Manager
+
+    login_manager.init_app(app)
+    login_manager.login_view = "login_controller.login"
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        # Retrieve user info from session or database
+        email = session.get("email")
+        name = session.get("name")
+        if email:
+            return User(id=user_id, email=email, name=name)
+        return None
 
     return app

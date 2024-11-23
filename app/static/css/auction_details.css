@@ -63,7 +63,7 @@
     width: 40px;
 }
 
-.product-name {
+.auction-item {
     align-self: start;
     margin-top: 13px;
     flex-grow: 1;
@@ -92,7 +92,7 @@
     margin: -191px 0 0 114px;
 }
 
-.product-description {
+.auction-desc {
     align-self: stretch;
     width: 480px;
     height: 183px;
@@ -316,7 +316,7 @@
         white-space: initial;
     }
 
-    .product-name {
+    .auction-item {
         max-width: 100%;
         white-space: initial;
     }
@@ -325,7 +325,7 @@
         margin-right: 10px;
     }
 
-    .product-description {
+    .auction-desc {
         max-width: 100%;
     }
 
