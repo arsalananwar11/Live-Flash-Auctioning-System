@@ -10,14 +10,15 @@
 
         <form id="create-auction-form" class="form-container">
             <div class="form-column">
-                <label for="auction-item" class="form-label">Product Name</label>
-                <input type="text" id="auction-item" name="auction_item" class="form-input" placeholder="Name" required />
+                <label for="auction_item" class="form-label">Product Name</label>
+                <input type="text" id="auction_item" name="auction_item" class="form-input" placeholder="Name" required />
 
-                <label for="auction-desc" class="form-label">Product Description</label>
-                <textarea id="auction-desc" name="auction_desc" class="form-textarea" placeholder="Description"></textarea>
+                <label for="auction_desc" class="form-label">Product Description</label>
+                <textarea id="auction_desc" name="auction_desc" class="form-textarea" placeholder="Description"></textarea>
 
-                <label for="base-price" class="form-label">Initial Bid: ($)</label>
-                <input type="number" id="base-price" name="base_price" class="form-input bid-input" placeholder="Minimum $1" min="1" required />
+                <label for="base_price" class="form-label">Initial Bid: ($)</label>
+                <input type="number" id="base_price" name="base_price" class="form-input bid-input" placeholder="Minimum $1" min="1" required />
+
 
                 <div class="date-time-container">
                     <div>
@@ -38,6 +39,15 @@
                         <input type="time" id="end-time" name="end_time" class="form-input" required />
                     </div>
                 </div>
+
+                <label for="default_time_increment" class="form-label">Default Time Increment: (minutes)</label>
+                <input type="number" id="default_time_increment" name="default_time_increment" class="form-input bid-input" placeholder="Default 5 minutes" min="1" required />
+
+                <label for="default_time_increment_before" class="form-label">Default time increment before: (minutes)</label>
+                <input type="number" id="default_time_increment_before" name="default_time_increment_before" class="form-input bid-input" placeholder="Default 5 minutes" min="1" required />
+
+                <label for="stop_snipes_after" class="form-label">Stop snipes after: (minutes)</label>
+                <input type="number" id="stop_snipes_after" name="stop_snipes_after" class="form-input bid-input" placeholder="Default 10 snipes" min="1" required />
             </div>
 
             <div class="form-column">

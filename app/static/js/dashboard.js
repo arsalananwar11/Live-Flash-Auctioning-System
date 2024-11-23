@@ -34,7 +34,7 @@ function loadAuctionData(tabTitle) {
                                             <div class="avatar-background">${auction.organizer.charAt(0)}</div>
                                         </div>
                                         <div class="header-text">
-                                            <h2 class="header-title">${auction.product_name}</h2>
+                                            <h2 class="header-title">${auction.auction_item}</h2>
                                             <p class="header-subtitle">${auction.type}</p>
                                         </div>
                                     </header>
