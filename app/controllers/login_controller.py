@@ -7,8 +7,9 @@ from flask import (
     redirect,
     url_for,
 )
-import jwt
+
 import requests
+import jwt
 from flask_login import (
     UserMixin,
     login_user,
@@ -39,9 +40,11 @@ def callback():
     Extract the token from the URL fragment and validate it.
     """
     token = request.args.get("id_token")
+    print(f"Token received: {token}")
     if token:
         _, status_code = decode_cognito_token(token)
         if status_code == 200:
+            print(session)
             session["access_token"] = token
 
             # Log user in
@@ -64,6 +67,7 @@ def logout():
 
 def decode_cognito_token(token):
     try:
+
         # Fetch the public keys from Cognito
         jwk_url = f"https://cognito-idp.{current_app.config['COGNITO_REGION']}.amazonaws.com/{current_app.config['COGNITO_USERPOOL_ID']}/.well-known/jwks.json"
         response = requests.get(jwk_url)
@@ -86,6 +90,7 @@ def decode_cognito_token(token):
             algorithms=["RS256"],
             audience=current_app.config["COGNITO_APP_CLIENT_ID"],
         )
+        # print(f"Decoded Token: {decoded_token}")
         user_id = decoded_token.get("sub")
         email = decoded_token.get("email")
         name = decoded_token.get("name")

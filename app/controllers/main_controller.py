@@ -14,7 +14,7 @@ def index():
 
 
 @main_controller.route("/status")
-@login_required
+# @login_required
 def status():
     message = MainService().get_message(
         "The auction system is live and responding to requests!"
@@ -24,20 +24,20 @@ def status():
 
 # Dashboard route
 @main_controller.route("/dashboard")
-@login_required
+# @login_required
 def open_dashboard():
     return render_template("dashboard.html")
 
 
 # Dashboard route
 @main_controller.route("/create")
-@login_required
+# @login_required
 def open_create_auction():
     return render_template("create-auction-page.html")
 
 
 @main_controller.route("/create-auction", methods=["POST"])
-@login_required
+# @login_required
 def create_auction():
     datetime_format = "%Y-%m-%d %H:%M"
     try:
