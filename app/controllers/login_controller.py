@@ -16,6 +16,7 @@ from flask_login import (
     logout_user,
     current_user,
 )
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 login_controller = Blueprint("login_controller", __name__)
 
@@ -99,9 +100,9 @@ def decode_cognito_token(token):
         session["email"] = email
         session["name"] = name
         return "Token decoded successfully", 200
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         return "The token has expired", 401
-    except jwt.InvalidTokenError as e:
+    except InvalidTokenError as e:
         return f"Invalid token: {str(e)}", 401
     except Exception as e:
         return f"An error occurred: {str(e)}", 500

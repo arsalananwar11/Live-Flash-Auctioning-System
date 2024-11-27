@@ -3,6 +3,8 @@ from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
 import os
+from flask import session
+
 
 auction_controller = Blueprint("auction_controller", __name__)
 
@@ -72,3 +74,20 @@ def get_websocket_url():
         return jsonify({"websocket_url": websocket_url}), 200
     else:
         return jsonify({"error": "WebSocket URL not found"}), 500
+
+
+@auction_controller.route('/user-details', methods=['GET'])
+@login_required
+def get_user_details():
+    """
+    Fetch and return user details to the frontend.
+    """
+    try:
+        user_details = {
+            "id": current_user.id,
+            "email": session.get("email"),
+            "name": session.get("name"),
+        }
+        return jsonify(user_details), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
