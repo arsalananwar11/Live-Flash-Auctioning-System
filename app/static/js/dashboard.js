@@ -1,4 +1,34 @@
+let loggedInUserId = null; // Global variable to store the logged-in user ID
+
 $(document).ready(function () {
+  // Fetch user details on page load
+  fetch("/user-details", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, // Add if using token validation
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("User Details:", data);
+      if (data && data.id) {
+        loggedInUserId = data.id; // Store the user ID globally
+        console.log(`Logged-in User ID: ${loggedInUserId}`);
+      }
+      // You can use user details to customize the dashboard UI, like showing the username
+      if (data && data.name) {
+        $(".user-name").text(data.name); // Assuming there's an element to show the user's name
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to fetch user details:", error);
+    });
+
   $(".tabs-group .tab-default, .tabs-group .tab-selected").on(
     "click",
     function () {
@@ -29,7 +59,13 @@ $(document).ready(function () {
 
 function connectToWebSocket(auctionID) {
   //Hardcoded user id
-  const userID = "user123";
+  // const userID = "user123";
+
+  if (!loggedInUserId) {
+    console.error("User ID is not available. Unable to connect to WebSocket.");
+    return;
+  }
+
   // Fetch the WebSocket URL from the backend
   fetch("/get-websocket-url")
     .then((response) => response.json())
@@ -38,13 +74,16 @@ function connectToWebSocket(auctionID) {
 
       // Establish WebSocket connection with auction_id as query parameter
       const socket = new WebSocket(
-        `${websocketUrl}?auction_id=${auctionID}&user_id=${userID}`
+        `${websocketUrl}?auction_id=${auctionID}&user_id=${loggedInUserId}`
       );
 
       // WebSocket event handlers
       socket.onopen = function () {
         console.log("WebSocket connection established.");
         alert(`You have joined the auction: ${auctionID}`);
+        console.log(
+          `Connected to auction: ${auctionID} as user: ${loggedInUserId}`
+        );
         const message = { action: "getConnectionId" };
         socket.send(JSON.stringify(message));
       };

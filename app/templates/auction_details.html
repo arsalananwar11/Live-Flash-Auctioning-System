@@ -1,49 +1,98 @@
-{% extends "shared/main.html" %}
-
-{% block page_body %}
+{% extends "shared/main.html" %} {% block page_body %}
 <script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auction_details.css') }}">
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/auction_details.css') }}"
+/>
 <main class="auction-page">
-    <div class="product-info">
-        <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/07d3df17349a7fe24612154aa00166bf01c75b0ee1a06662800483bf06c85980?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product icon" class="product-icon" />
-        <h2 class="auction-item">{{ auction.auction_item }}</h2>
-    </div>
-    <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/21281a090b1e1de893f32056f0a670815b206286aac025adc90c8d604fd08d4c?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product image" class="product-image" />
-    
-    <div class="product-details">
-        <p class="auction-desc">
-            {{ auction.auction_desc }}
-        </p>
-        <div class="time-remaining">Time Remaining</div>
-        <div class="top-bid">TopBid</div>
-        <div class="time-frame">00:32:10</div>
-        <div class="bid-frame">
-            <span>$</span>
-            <span>1200</span>
-        </div>
-    </div>
+  <div class="product-info">
+    <img
+      src="https://cdn.builder.io/api/v1/image/assets/TEMP/07d3df17349a7fe24612154aa00166bf01c75b0ee1a06662800483bf06c85980?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5"
+      alt="Product icon"
+      class="product-icon"
+    />
+    <h2 class="auction-item">{{ auction.auction_item }}</h2>
+  </div>
+  <img
+    src="https://cdn.builder.io/api/v1/image/assets/TEMP/21281a090b1e1de893f32056f0a670815b206286aac025adc90c8d604fd08d4c?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5"
+    alt="Product image"
+    class="product-image"
+  />
 
-    <div class="leaderboard-container">
-        <h3 class="leaderboard-title">Leaderboard</h3>
-        <table class="leaderboard-table">
-            <thead>
-                <tr class="table-header">
-                    <th class="table-cell"><div class="cell-content">Rank</div></th>
-                    <th class="table-cell"><div class="cell-content">Username</div></th>
-                    <th class="table-cell"><div class="cell-content">Bid</div></th>
-                    <th class="table-cell"><div class="cell-content">Time</div></th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+  <div class="product-details">
+    <p class="auction-desc">{{ auction.auction_desc }}</p>
+    <div class="time-remaining">Time Remaining</div>
+    <div class="top-bid">TopBid</div>
+    <div class="time-frame">00:32:10</div>
+    <div class="bid-frame">
+      <span>$</span>
+      <span>1200</span>
     </div>
-    
-    <div class="bid-buttons">
-    </div>
+  </div>
+
+  <div class="leaderboard-container">
+    <h3 class="leaderboard-title">Leaderboard</h3>
+    <table class="leaderboard-table">
+      <thead>
+        <tr class="table-header">
+          <th class="table-cell"><div class="cell-content">Rank</div></th>
+          <th class="table-cell"><div class="cell-content">Username</div></th>
+          <th class="table-cell"><div class="cell-content">Bid</div></th>
+          <th class="table-cell"><div class="cell-content">Time</div></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="bid-buttons"></div>
 </main>
 
+<script>
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
 
-</main>
+  console.log("Connecting to WebSocket...");
+  console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
+
+  // Establish WebSocket connection
+  const socket = new WebSocket(
+    `${websocketUrl}?auction_id=${auctionId}&user_id=${userId}`
+  );
+
+  socket.onopen = function () {
+    console.log("WebSocket connection established.");
+    console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
+    const message = {
+      action: "join",
+      auction_id: auctionId,
+      user_id: userId,
+    };
+    socket.send(JSON.stringify(message)); // Notify server of connection
+  };
+
+  socket.onmessage = function (event) {
+    console.log("Message received from server:", event.data);
+
+    // Simulate logging connection ID from server response
+    try {
+      const message = JSON.parse(event.data);
+      if (message.connectionId) {
+        console.log(`Connection ID: ${message.connectionId}`);
+      }
+    } catch (error) {
+      console.error("Error parsing server message:", error);
+    }
+  };
+
+  socket.onerror = function (error) {
+    console.error("WebSocket error:", error);
+  };
+
+  socket.onclose = function () {
+    console.log("WebSocket connection closed.");
+  };
+</script>
 {% endblock %}
-
