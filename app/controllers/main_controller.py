@@ -1,6 +1,6 @@
 from datetime import datetime
 import traceback
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, session
 from app.services.main_service import MainService
 from flask_login import login_required
 
@@ -94,7 +94,7 @@ def get_auctions():
             mode = request.args.get("mode")
             if mode == "my_auctions":
                 user_id = session.get("user_id")
-               
+
         else:
             return jsonify({"error": "Method Not Allowed"}), 405
 

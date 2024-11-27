@@ -86,8 +86,9 @@ function renderAuctionData(auctions) {
         return;
     }
 
-    $.each(auctions, function (index, auction) {
+    $.each(auctions, function (_, auction) {
         // Validate required fields with updated field names
+        console.log('Auction:', auction);
         if (!auction.auction_item || !auction.start_time || !auction.auction_desc) {
             console.warn('Incomplete auction data:', auction);
             return; // Skip this auction
@@ -99,7 +100,7 @@ function renderAuctionData(auctions) {
             : 'https://via.placeholder.com/150'; // Fallback image
 
         // Create auction card HTML with updated field names
-        const auctionCard = `
+        auctionRow.append(`
             <article class="auction-column">
             <div class="auction-card">
                 <div class="card-content">
@@ -118,7 +119,7 @@ function renderAuctionData(auctions) {
                     </div>
                     <p class="card-description">${escapeHtml(auction.auction_desc)}</p>
                     <div class="card-actions">
-                    <button class="primary-action" data-auction-id="${auction.auction_id}">
+                    <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
                         <span class="action-state">Join</span>
                     </button>
                     </div>
@@ -126,16 +127,7 @@ function renderAuctionData(auctions) {
                 </div>
             </div>
             </article>
-        `;
-
-            auctionRow.append(auctionCard);
-    });
-
-    // Attach click event to the button using event delegation
-    auctionRow.on('click', '.primary-action', function () {
-        const auctionId = $(this).data('auction-id');
-        console.log('Join auction:', auctionId);
-        window.location.href = `/auctions/${auctionId}`;
+        `);
     });
 }
 
@@ -161,6 +153,7 @@ function loadAuctionData(tabTitle) {
         type: requestType,
         dataType: 'json',
         success: function (data) {
+            // console.log('Auction data loaded:', data);
         
             renderAuctionData(data);
         },
@@ -181,6 +174,15 @@ function loadAuctionData(tabTitle) {
     $.ajax(ajaxSettings);
 }
 
+$(document).on("click", ".join-button", function () {
+    const auctionID = $(this).data("auction-id");
+    connectToWebSocket(auctionID);
+    console.log("Button Clicked");
+    console.log(`Attempting to join auction: ${auctionID}`);
+    const auctionId = $(this).data('auction-id');
+    console.log('Join auction:', auctionId);
+    window.location.href = `/auctions/${auctionId}`;
+});
 // Load "All Auction" data by default on page load
 
 

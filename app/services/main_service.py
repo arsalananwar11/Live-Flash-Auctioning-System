@@ -75,7 +75,6 @@ class MainService:
 
         except requests.exceptions.RequestException as e:
             return {"status": "failure", "error": "Request failed", "details": str(e)}
-        
 
     @staticmethod
     def get_auctions(mode, user_id=None):
@@ -136,4 +135,8 @@ class MainService:
                 }
 
         except requests.exceptions.RequestException as e:
-            return {"status": "failure", "error": "Request to API Gateway failed.", "details": str(e)}
+            return {
+                "status": "failure",
+                "error": "Request to API Gateway failed.",
+                "details": str(e),
+            }
