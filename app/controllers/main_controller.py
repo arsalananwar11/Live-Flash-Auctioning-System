@@ -2,7 +2,6 @@ from datetime import datetime
 import traceback
 from flask import Blueprint, jsonify, render_template, request
 from app.services.main_service import MainService
-from flask_login import login_required
 
 main_controller = Blueprint("main_controller", __name__)
 

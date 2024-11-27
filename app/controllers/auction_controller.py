@@ -64,19 +64,19 @@ def get_auctions(mode="all_auctions"):
         return jsonify({"error": str(e)}), 500
 
 
-@auction_controller.route('/get-websocket-url', methods=['GET'])
+@auction_controller.route("/get-websocket-url", methods=["GET"])
 def get_websocket_url():
     """
     Expose the WebSocket URL from the .env file for frontend use.
     """
-    websocket_url = os.getenv('WEB_SOCKET_URL')
+    websocket_url = os.getenv("WEB_SOCKET_URL")
     if websocket_url:
         return jsonify({"websocket_url": websocket_url}), 200
     else:
         return jsonify({"error": "WebSocket URL not found"}), 500
 
 
-@auction_controller.route('/user-details', methods=['GET'])
+@auction_controller.route("/user-details", methods=["GET"])
 @login_required
 def get_user_details():
     """
