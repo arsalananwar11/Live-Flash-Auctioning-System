@@ -2,7 +2,6 @@ import json
 import base64
 import boto3
 import os
-from datetime import datetime
 import pymysql  # Or the database driver you're using
 
 # S3 client
@@ -27,7 +26,7 @@ def lambda_handler(event, context):
         try:
             body = json.loads(event.get("body", "{}"))
             print(type(event.get("body", {})))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             return {
                 "statusCode": 400,
                 "body": json.dumps({"error": "Invalid JSON in request body"}),
