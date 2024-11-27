@@ -45,11 +45,19 @@ def lambda_handler(event, context):
         body = json.loads(body)
 
     user_id = body.get("user_id")
+    if mode == "single_auction":
+        auction_id = query_parameters.get("auction_id")
 
     if mode == "my_auction" and not user_id:
         return {
             "statusCode": 400,
             "body": json.dumps({"error": "Missing user_id query parameter"}),
+        }
+
+    if mode == "single_auction" and not auction_id:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "Missing auction_id query parameter"}),
         }
 
     try:
@@ -65,26 +73,38 @@ def lambda_handler(event, context):
 
         with connection.cursor() as cursor:
 
-            if mode == "my_auction":
+            if mode == "my_auctions":
                 select_query = """
                     SELECT * FROM auction WHERE created_by = %(user_id)s
                 """
-            elif mode == "upcoming_auction":
+                cursor.execute(select_query, {"user_id": user_id})
+            elif mode == "upcoming_auctions":
                 select_query = """
                     SELECT * FROM auction WHERE start_time > NOW()
                 """
+                cursor.execute(select_query)
+            elif mode == "single_auction":
+                select_query = """
+                    SELECT * FROM auction WHERE auction_id = %(auction_id)s
+                """
+                cursor.execute(select_query, {"auction_id": auction_id})
             else:  # Default to 'all_auction'
                 select_query = """
                     SELECT * FROM auction ORDER BY start_time DESC
                 """
-            cursor.execute(select_query, {"user_id": user_id})
+                cursor.execute(select_query)
             auctions = cursor.fetchall()
 
         # Closing connection
         connection.close()
 
-        for auction in auctions:
-            auction_id = auction["auction_id"]
+        if mode == "single_auction":
+            if not auctions:
+                return {
+                    "statusCode": 404,
+                    "body": json.dumps({"error": "Auction not found."}),
+                }
+            auction = auctions[0]
             s3_key_prefix = f"auctions/{auction_id}/"
             auction["images"] = []
 
@@ -103,9 +123,33 @@ def lambda_handler(event, context):
                     auction["images"].append(
                         {"file_name": s3_key.split("/")[-1], "base64": base64_image}
                     )
-        print("Fetching Completed")
-        # Return the response
-        return {"statusCode": 200, "body": json.dumps(auctions, default=str)}
+            print("Fetching Single Auction Completed")
+            # Return the single auction
+            return {"statusCode": 200, "body": json.dumps(auction, default=str)}
+        else:
+            for auction in auctions:
+                auction_id = auction["auction_id"]
+                s3_key_prefix = f"auctions/{auction_id}/"
+                auction["images"] = []
+
+                response = s3_client.list_objects_v2(
+                    Bucket=S3_BUCKET_NAME, Prefix=s3_key_prefix
+                )
+
+                if "Contents" in response:
+                    for obj in response["Contents"]:
+                        s3_key = obj["Key"]
+                        # Fetch image and convert to base64
+                        image_data = s3_client.get_object(
+                            Bucket=S3_BUCKET_NAME, Key=s3_key
+                        )["Body"].read()
+                        base64_image = base64.b64encode(image_data).decode("utf-8")
+                        auction["images"].append(
+                            {"file_name": s3_key.split("/")[-1], "base64": base64_image}
+                        )
+            print("Fetching Completed")
+            # Return the response
+            return {"statusCode": 200, "body": json.dumps(auctions, default=str)}
 
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
