@@ -12,9 +12,12 @@ $(document).ready(function () {
             $(this).find('.tab-content').removeClass('tab-content').addClass('tab-default-content');
         });
 
-        // Add selected state to the clicked tab
-        $(this).removeClass('tab-default').addClass('tab-selected');
-        $(this).find('.tab-default-content').removeClass('tab-default-content').addClass('tab-content');
+      // Add selected state to the clicked tab
+      $(this).removeClass("tab-default").addClass("tab-selected");
+      $(this)
+        .find(".tab-default-content")
+        .removeClass("tab-default-content")
+        .addClass("tab-content");
 
         // Get the tab title, transform it, and load corresponding content
         const rawTabTitle = $(this).find('.tab-title').text();
@@ -22,6 +25,53 @@ $(document).ready(function () {
         loadAuctionData(mode);
     });
 });
+
+function connectToWebSocket(auctionID) {
+  //Hardcoded user id
+  const userID = "user123";
+  // Fetch the WebSocket URL from the backend
+  fetch("/get-websocket-url")
+    .then((response) => response.json())
+    .then((data) => {
+      const websocketUrl = data.websocket_url;
+
+      // Establish WebSocket connection with auction_id as query parameter
+      const socket = new WebSocket(
+        `${websocketUrl}?auction_id=${auctionID}&user_id=${userID}`
+      );
+
+      // WebSocket event handlers
+      socket.onopen = function () {
+        console.log("WebSocket connection established.");
+        alert(`You have joined the auction: ${auctionID}`);
+        const message = { action: "getConnectionId" };
+        socket.send(JSON.stringify(message));
+      };
+
+      socket.onmessage = function (event) {
+        console.log("Message received from server:", event.data);
+
+        // Parse the received message
+        const message = JSON.parse(event.data);
+
+        // Check if the message contains a connection ID
+        if (message.connectionId) {
+          console.log(`Connection ID: ${message.connectionId}`);
+        }
+      };
+
+      socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+      };
+
+      socket.onclose = function () {
+        console.log("WebSocket connection closed.");
+      };
+    })
+    .catch((error) => {
+      console.error("Error fetching WebSocket URL:", error);
+    });
+}
 
 function escapeHtml(text) {
     return $('<div>').text(text).html();
@@ -132,4 +182,6 @@ function loadAuctionData(tabTitle) {
 }
 
 // Load "All Auction" data by default on page load
+
+
 loadAuctionData("All Auction");

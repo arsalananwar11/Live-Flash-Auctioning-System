@@ -2,12 +2,15 @@ from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
+import os
+from flask import session
+
 
 auction_controller = Blueprint("auction_controller", __name__)
 
 
 @auction_controller.route("/auctions")
-@login_required
+# @login_required
 def auctions():
     message = MainService().get_message()
     message = f"{message} {current_user.name}"
@@ -57,5 +60,34 @@ def get_auctions(mode="all_auctions"):
         # Return the data as JSON
         return jsonify(auctions_list), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@auction_controller.route("/get-websocket-url", methods=["GET"])
+def get_websocket_url():
+    """
+    Expose the WebSocket URL from the .env file for frontend use.
+    """
+    websocket_url = os.getenv("WEB_SOCKET_URL")
+    if websocket_url:
+        return jsonify({"websocket_url": websocket_url}), 200
+    else:
+        return jsonify({"error": "WebSocket URL not found"}), 500
+
+
+@auction_controller.route("/user-details", methods=["GET"])
+@login_required
+def get_user_details():
+    """
+    Fetch and return user details to the frontend.
+    """
+    try:
+        user_details = {
+            "id": current_user.id,
+            "email": session.get("email"),
+            "name": session.get("name"),
+        }
+        return jsonify(user_details), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
