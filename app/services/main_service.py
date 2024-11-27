@@ -75,3 +75,65 @@ class MainService:
 
         except requests.exceptions.RequestException as e:
             return {"status": "failure", "error": "Request failed", "details": str(e)}
+        
+
+    @staticmethod
+    def get_auctions(mode, user_id=None):
+        try:
+            if mode == "my_auctions":
+                if not user_id:
+                    return {
+                        "status": "failure",
+                        "status_code": 400,
+                        "error": "Missing user_id for my_auction mode.",
+                    }
+                payload = {"user_id": user_id}
+                params = {"mode": mode}
+                response = requests.get(
+                    f"{api_gateway_url}/get-auctions",
+                    params=params,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                )
+            elif mode == "upcoming_auctions":
+                params = {"mode": mode}
+                response = requests.get(
+                    f"{api_gateway_url}/get-auctions",
+                    params=params,
+                    headers={"Content-Type": "application/json"},
+                )
+            else:
+                response = requests.get(
+                    f"{api_gateway_url}/get-auctions",
+                    headers={"Content-Type": "application/json"},
+                )
+
+            try:
+                response_data = response.json()
+
+                if response.status_code == 200:
+                    return {
+                        "status": "success",
+                        "status_code": 200,
+                        "data": response_data,
+                    }
+                else:
+                    return {
+                        "status": "failure",
+                        "status_code": response.status_code,
+                        "error": response_data.get(
+                            "error", "Unknown error occurred while fetching auctions."
+                        ),
+                        "details": response_data,
+                    }
+
+            except ValueError:
+                return {
+                    "status": "failure",
+                    "status_code": response.status_code,
+                    "error": "Invalid JSON response from API.",
+                    "details": response.text,
+                }
+
+        except requests.exceptions.RequestException as e:
+            return {"status": "failure", "error": "Request to API Gateway failed.", "details": str(e)}

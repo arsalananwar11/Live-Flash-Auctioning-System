@@ -1,6 +1,6 @@
 from datetime import datetime
 import traceback
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, session
 from app.services.main_service import MainService
 from flask_login import login_required
 
@@ -81,5 +81,41 @@ def create_auction():
 
     except Exception as e:
         print("Exception occurred:", e)
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@main_controller.route("/api/get-auctions", methods=["GET"])
+@login_required
+def get_auctions():
+    user_id = None
+    try:
+        if request.method == "GET":
+            mode = request.args.get("mode")
+            if mode == "my_auctions":
+                user_id = session.get("user_id")
+               
+        else:
+            return jsonify({"error": "Method Not Allowed"}), 405
+
+        # if mode != "my_auctions":
+        #     return jsonify({"error": "Fetching auctions is not implemented yet."}), 501
+
+        response = MainService().get_auctions(mode, user_id)
+        if response.get("status") == "success":
+            return jsonify(response.get("data")), 200
+        else:
+            return (
+                jsonify(
+                    {
+                        "error": response.get("error", "Failed to fetch auctions."),
+                        "details": response.get("details"),
+                    }
+                ),
+                response.get("status_code", 500),
+            )
+
+    except Exception as e:
+        print("Exception occurred while fetching auctions:", e)
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
