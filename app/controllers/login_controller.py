@@ -17,6 +17,8 @@ from flask_login import (
     current_user,
 )
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from app.models.db_models import Users  # Import your Users model
+from app.models import db  # Import your SQLAlchemy database instance
 
 login_controller = Blueprint("login_controller", __name__)
 
@@ -47,6 +49,26 @@ def callback():
         if status_code == 200:
             print(session)
             session["access_token"] = token
+
+            # Log user in
+            user_id = session["user_id"]
+            user_email = session["email"]
+            user_name = session["name"]
+
+            # Insert or update the user in the RDS database
+            existing_user = Users.query.filter_by(user_id=user_id).first()
+            if not existing_user:
+                # Insert new user
+                new_user = Users(user_id=user_id, user_name=user_name)
+                db.session.add(new_user)
+                print(f"New user added: {user_name}")
+            else:
+                # Update existing user's name (if needed)
+                if existing_user.user_name != user_name:
+                    existing_user.user_name = user_name
+                    print(f"User updated: {user_name}")
+
+            db.session.commit()  # Save changes to the database
 
             # Log user in
             user = User(
