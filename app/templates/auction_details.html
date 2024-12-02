@@ -1,5 +1,6 @@
 {% extends "shared/main.html" %} {% block page_body %}
-<script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
+<script src="{{ url_for('static', filename='js/websocket.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/auction_details.js') }}" type="module"></script>
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/auction_details.css') }}"
@@ -48,7 +49,7 @@
   <div class="bid-buttons"></div>
 </main>
 
-<script>
+<!-- <script>
   // Data passed from the backend
   const websocketUrl = "{{ websocket_url }}";
   const userId = "{{ user_id }}";
@@ -61,38 +62,21 @@
   const socket = new WebSocket(
     `${websocketUrl}?auction_id=${auctionId}&user_id=${userId}`
   );
+</script> -->
+<script type="module">
+  import { AuctionWebSocket } from "../static/js/websocket.js";
 
-  socket.onopen = function () {
-    console.log("WebSocket connection established.");
-    console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
-    const message = {
-      action: "join",
-      auction_id: auctionId,
-      user_id: userId,
-    };
-    socket.send(JSON.stringify(message)); // Notify server of connection
-  };
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
 
-  socket.onmessage = function (event) {
-    console.log("Message received from server:", event.data);
+  console.log("Initializing WebSocket...");
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  auctionSocket.connect();
 
-    // Simulate logging connection ID from server response
-    try {
-      const message = JSON.parse(event.data);
-      if (message.connectionId) {
-        console.log(`Connection ID: ${message.connectionId}`);
-      }
-    } catch (error) {
-      console.error("Error parsing server message:", error);
-    }
-  };
-
-  socket.onerror = function (error) {
-    console.error("WebSocket error:", error);
-  };
-
-  socket.onclose = function () {
-    console.log("WebSocket connection closed.");
-  };
+  // Expose the auctionSocket for further interactions (like bid placement)
+  window.auctionSocket = auctionSocket;
 </script>
+
 {% endblock %}
