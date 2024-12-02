@@ -86,6 +86,12 @@ function connectToWebSocket(auctionID) {
         );
         const message = { action: "getConnectionId" };
         socket.send(JSON.stringify(message));
+
+        // Send a ping every 5 minutes
+        setInterval(() => {
+          console.log("Sending ping to keep the connection alive");
+          socket.send(JSON.stringify({ action: "ping" }));
+        }, 5 * 60 * 1000); // 5 minutes
       };
 
       socket.onmessage = function (event) {
