@@ -1,8 +1,10 @@
-{% extends "shared/main.html" %}
-
-{% block page_body %}
-<script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auction_details.css') }}">
+{% extends "shared/main.html" %} {% block page_body %}
+<script src="{{ url_for('static', filename='js/websocket.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/auction_details.js') }}" type="module"></script>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/auction_details.css') }}"
+/>
 <main class="auction-page">
     <div class="product-info">
         {% if auction.images and auction.images|length > 0 %}
@@ -52,4 +54,35 @@
         <!-- Bid buttons or forms can be added here -->
     </div>
 </main>
+
+<!-- <script>
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
+
+  console.log("Connecting to WebSocket...");
+  console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
+
+  // Establish WebSocket connection
+  const socket = new WebSocket(
+    `${websocketUrl}?auction_id=${auctionId}&user_id=${userId}`
+  );
+</script> -->
+<script type="module">
+  import { AuctionWebSocket } from "../static/js/websocket.js";
+
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
+
+  console.log("Initializing WebSocket...");
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  auctionSocket.connect();
+
+  // Expose the auctionSocket for further interactions (like bid placement)
+  window.auctionSocket = auctionSocket;
+</script>
+
 {% endblock %}
