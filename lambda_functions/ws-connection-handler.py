@@ -14,7 +14,9 @@ def lambda_handler(event, context):
         print(f"Connection established: {connection_id}")
         response = {
             "statusCode": 200,
-            "body": json.dumps({"message": "Connection successful!"}),
+            "body": json.dumps(
+                {"message": "Connection successful!", "connectionId": connection_id}
+            ),
         }
 
     elif route_key == "$disconnect":
@@ -36,7 +38,11 @@ def lambda_handler(event, context):
             response = {
                 "statusCode": 200,
                 "body": json.dumps(
-                    {"message": "Default route response", "received": body}
+                    {
+                        "message": "Default route response",
+                        "received": body,
+                        "connectionId": connection_id,
+                    }
                 ),
             }
         except json.JSONDecodeError as e:

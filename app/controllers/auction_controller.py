@@ -1,3 +1,5 @@
+from datetime import datetime
+import traceback
 from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
@@ -19,48 +21,127 @@ def auctions():
 
 @auction_controller.route("/auctions/<string:auction_id>")
 def auction_details(auction_id):
-    target_auction = AuctionService().get_auction(auction_id)
+    # target_auction = AuctionService().get_auction(auction_id)
 
-    if target_auction is None:
-        return "Auction not found", 404
+    # if target_auction is None:
+    #     return "Auction not found", 404
 
-    return render_template("auction_details.html", auction=target_auction)
-
-
-@auction_controller.route("/get-auctions/<mode>", methods=["GET"])
-def get_auctions(mode="all_auctions"):
+    # return render_template("auction_details.html", auction=target_auction)
     try:
-        # Get the current user if the mode is 'my_auctions'
-        user_email = request.args.get("user_email")
+        # Fetch the target auction
+        target_auction = AuctionService().get_target_auction(auction_id)
 
-        if mode == "all_auctions":
-            # Fetch all auctions
-            auctions = AuctionService().get_all_auctions()
+        if target_auction is None:
+            return "Auction not found", 404
 
-        elif mode == "upcoming_auctions":
-            # Fetch all auctions where the end_time is in the future
-            auctions = AuctionService().get_upcoming_auctions()
+        # Fetch WebSocket URL from the environment
+        websocket_url = os.getenv("WEB_SOCKET_URL")
+        if not websocket_url:
+            return "WebSocket URL not configured", 500
 
-        elif mode == "my_auctions" and user_email:
-            # Fetch auctions created by the current user (assuming user_id is passed in the request)
-            auctions = AuctionService().get_my_auctions(user_email)
+        # Simulate a user ID for testing purposes
+        user_id = current_user.id
+
+        # Pass data to the frontend
+        return render_template(
+            "auction_details.html",
+            auction=target_auction,
+            websocket_url=websocket_url,
+            user_id=user_id,
+            auction_id=auction_id,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@auction_controller.route("/create")
+@login_required
+def open_create_auction():
+    return render_template("create-auction-page.html")
+
+
+@auction_controller.route("/api/get-auctions", methods=["GET"])
+@login_required
+def get_auctions():
+    user_id = None
+    try:
+        if request.method == "GET":
+            mode = request.args.get("mode")
+            if mode == "my_auctions":
+                user_id = session.get("user_id")
 
         else:
-            # Return an error if the mode is not recognized or if user_id is missing in 'my_auctions'
+            return jsonify({"error": "Method Not Allowed"}), 405
+
+        # if mode != "my_auctions":
+        #     return jsonify({"error": "Fetching auctions is not implemented yet."}), 501
+
+        response = AuctionService.get_auctions(mode, user_id)
+        if response.get("status") == "success":
+            return jsonify(response.get("data")), 200
+        else:
             return (
                 jsonify(
-                    {"error": "Invalid mode or missing user_email for 'my_auctions'"}
+                    {
+                        "error": response.get("error", "Failed to fetch auctions."),
+                        "details": response.get("details"),
+                    }
                 ),
-                400,
+                response.get("status_code", 500),
             )
 
-        # Prepare the response data
-        auctions_list = AuctionService().prepare_auction_data(auctions)
+    except Exception as e:
+        print("Exception occurred while fetching auctions:", e)
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
-        # Return the data as JSON
-        return jsonify(auctions_list), 200
+
+@auction_controller.route("/create-auction", methods=["POST"])
+# @login_required
+def create_auction():
+    datetime_format = "%Y-%m-%d %H:%M"
+    try:
+        start_date = request.form.get("start_date")
+        start_time = request.form.get("start_time")
+        start_datetime = f"{start_date} {start_time}"
+        end_date = request.form.get("end_date")
+        end_time = request.form.get("end_time")
+        end_datetime = f"{end_date} {end_time}"
+        image_file = request.files.getlist("images")
+
+        auction_data = {
+            "auction_item": request.form.get("auction_item"),
+            "auction_desc": request.form.get("auction_desc"),
+            "base_price": float(request.form.get("base_price")),
+            "start_time": datetime.strptime(
+                start_datetime, datetime_format
+            ).isoformat(),
+            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
+            "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
+            "images": image_file,
+        }
+
+        # Call the service to create auction
+        response = AuctionService().create_auction(auction_data)
+        if response.get("status_code") == 201:
+            return jsonify({"message": "Auction created successfully!"}), 200
+        else:
+            return (
+                jsonify(
+                    {"error": "Failed to create auction", "details": response.json()}
+                ),
+                response.status_code,
+            )
 
     except Exception as e:
+        print("Exception occurred:", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 

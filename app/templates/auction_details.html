@@ -1,23 +1,34 @@
-{% extends "shared/main.html" %}
+{% extends "shared/main.html" %} 
 
 {% block page_body %}
-<script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auction_details.css') }}">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/websocket.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/auction_details.js') }}" type="module"></script>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/auction_details.css') }}"
+/>
 
 <main class="auction-page">
     <div class="product-info">
-        <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/07d3df17349a7fe24612154aa00166bf01c75b0ee1a06662800483bf06c85980?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product icon" class="product-icon" />
+        {% if auction.images and auction.images|length > 0 %}
+            <img src="data:image/jpeg;base64,{{ auction.images[0].base64 }}" alt="Product icon" class="product-icon" />
+        {% else %}
+            <img src="https://via.placeholder.com/150" alt="Product icon" class="product-icon" />
+        {% endif %}
         <h2 class="auction-item">{{ auction.auction_item }}</h2>
     </div>
-    <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/21281a090b1e1de893f32056f0a670815b206286aac025adc90c8d604fd08d4c?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product image" class="product-image" />
+    {% if auction.images and auction.images|length > 1 %}
+        <img src="data:image/jpeg;base64,{{ auction.images[1].base64 }}" alt="Product image" class="product-image" />
+    {% else %}
+        <img src="https://via.placeholder.com/300" alt="Product image" class="product-image" />
+    {% endif %}
     
     <div class="product-details">
         <p class="auction-desc">
             {{ auction.auction_desc }}
         </p>
         <div class="time-remaining">Time Remaining</div>
-        <div class="top-bid">TopBid</div>
+        <div class="top-bid">Top Bid</div>
         <div class="time-frame">00:32:10</div>
         <div class="bid-frame">
             <span>$</span>
@@ -38,13 +49,46 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Leaderboard entries will be populated here -->
             </tbody>
         </table>
     </div>
     
     <div class="bid-buttons">
+        <!-- Bid buttons or forms can be added here -->
     </div>
 </main>
+
+<!-- <script>
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
+
+  console.log("Connecting to WebSocket...");
+  console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
+
+  // Establish WebSocket connection
+  const socket = new WebSocket(
+    `${websocketUrl}?auction_id=${auctionId}&user_id=${userId}`
+  );
+</script> -->
+<script type="module">
+  import { AuctionWebSocket } from "../static/js/websocket.js";
+
+  // Data passed from the backend
+  const websocketUrl = "{{ websocket_url }}";
+  const userId = "{{ user_id }}";
+  const auctionId = "{{ auction_id }}";
+
+  console.log("Initializing WebSocket...");
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  auctionSocket.connect();
+
+  // Expose the auctionSocket for further interactions (like bid placement)
+  window.auctionSocket = auctionSocket;
+</script>
+
 <script>
     const socket = io.connect('http://localhost:5000');
 
@@ -77,4 +121,3 @@
     });
 </script>
 {% endblock %}
-
