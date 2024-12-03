@@ -52,7 +52,7 @@ def callback():
 
             # Log user in
             user_id = session["user_id"]
-            user_email = session["email"]
+            # user_email = session["email"]
             user_name = session["name"]
 
             # Insert or update the user in the RDS database
