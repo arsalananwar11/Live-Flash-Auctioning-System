@@ -1,7 +1,9 @@
 from datetime import datetime
 from app.models.db_models import Auction
 from sqlalchemy.orm import joinedload
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
+socketio = SocketIO(cors_allowed_origins="*")
 
 class AuctionService:
     @staticmethod
@@ -81,3 +83,39 @@ class AuctionService:
             auctions_list.append(auction_data)
 
         return auctions_list
+
+@socketio.on('join_auction')
+def handle_join_auction(data):
+    print("auction joined")
+    auction_id = data.get('auction_id')
+    user_id = data.get('user_id')  # Optional, if tracking user info
+
+    auction = AuctionService().get_auction(auction_id)
+    if not auction:
+        emit('error', {'message': 'Auction not found'})
+        return
+
+    # Join WebSocket room for this auction
+    join_room(auction_id)
+
+    # Calculate remaining time
+    now = datetime.utcnow()
+    end_time = auction.end_time
+    remaining_time = (end_time - now).total_seconds()
+
+    print(f"Remaining Time: {remaining_time}")  # Debugging print statement
+
+    if remaining_time <= 0:
+        emit('auction_ended', {'message': 'This auction has ended'})
+        return
+
+    # Send the remaining time to the user
+    emit('auction_time_update', {'remaining_time': remaining_time}, to=auction_id)
+
+
+@socketio.on('leave_auction')
+def handle_leave_auction(data):
+    auction_id = data.get('auction_id')
+    leave_room(auction_id)
+    emit('user_left', {'message': f'User left auction {auction_id}'}, to=auction_id)
+

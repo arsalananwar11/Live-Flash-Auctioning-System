@@ -6,11 +6,14 @@ import os
 from app.controllers.login_controller import User
 from flask_migrate import Migrate
 from app.models import db
+from flask_socketio import SocketIO
 
 # Load environment variables from .env file
 load_dotenv()
 login_manager = LoginManager()
 
+# Initialize SocketIO without binding to an app yet
+socketio = SocketIO(cors_allowed_origins="*")
 
 def create_app():
     app = Flask(__name__)
@@ -71,4 +74,7 @@ def create_app():
             return User(id=user_id, email=email, name=name)
         return None
 
+    # Bind socketio to the app
+    socketio.init_app(app)
+    
     return app

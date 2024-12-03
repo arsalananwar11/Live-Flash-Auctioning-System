@@ -3,6 +3,8 @@
 {% block page_body %}
 <script src="{{ url_for('static', filename='js/auction_details.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auction_details.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+
 <main class="auction-page">
     <div class="product-info">
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/07d3df17349a7fe24612154aa00166bf01c75b0ee1a06662800483bf06c85980?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="Product icon" class="product-icon" />
@@ -21,6 +23,7 @@
             <span>$</span>
             <span>1200</span>
         </div>
+        <h2>Remaining Time: <span id="remaining-time">Calculating...</span></h2>
     </div>
 
     <div class="leaderboard-container">
@@ -42,8 +45,36 @@
     <div class="bid-buttons">
     </div>
 </main>
+<script>
+    const socket = io.connect('http://localhost:5000');
 
+    // Listen for the auction time update
+    socket.on('auction_time_update', (data) => {
+        const remainingTime = data.remaining_time;
+        // Convert the time (in seconds) to minutes and seconds
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = Math.floor(remainingTime % 60);
+        document.getElementById('remaining-time').textContent = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+    });
 
-</main>
+    // Emit join_auction event when the user joins the auction
+    function joinAuction(auctionId, userId) {
+        socket.emit('join_auction', {
+            auction_id: auctionId,
+            user_id: userId
+        });
+    }
+
+    // Listen for auction end notification
+    socket.on('auction_ended', (data) => {
+        alert(data.message);
+        document.getElementById('remaining-time').textContent = "Auction Ended";
+    });
+
+    // Clean up when the user leaves
+    window.addEventListener('beforeunload', () => {
+        socket.emit('leave_auction', { auction_id: "{{ auction.auction_id }}" });
+    });
+</script>
 {% endblock %}
 
