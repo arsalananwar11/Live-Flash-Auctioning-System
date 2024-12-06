@@ -1,6 +1,7 @@
 {% extends "shared/main.html" %} {% block page_body %}
 <script src="{{ url_for('static', filename='js/websocket.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/auction_details.js') }}" type="module"></script>
+<script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/auction_details.css') }}"
@@ -31,11 +32,16 @@
 <main class="auction-page">
     <div class="product-info">
         <button onclick="disconnectAndGoBack()" class="back-button">Back</button>
+        <a href="{{ url_for('main_controller.open_dashboard')}}" class="back-icon">
+            
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2 class="auction-item">{{ auction.auction_item }}</h2>
     </div>
-    {% if auction.images and auction.images|length > 0 %}
-        <img src="data:image/jpeg;base64,{{ auction.images[0].base64 }}" alt="Product image" class="product-image" />
-    {% else %}
-        <img src="https://via.placeholder.com/300" alt="Product image" class="product-image" />
+    {% if auction.images and auction.images|length >= 1 %}
+        {% for image in auction.images %}
+            <img src="data:image/jpeg;base64,{{ image.base64 }}" alt="Product image" class="product-image" />
+        {% endfor %}
     {% endif %}
     
     <div class="product-details">

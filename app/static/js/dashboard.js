@@ -118,7 +118,10 @@ function renderAuctionData(auctions) {
                   <p class="card-description">${escapeHtml(auction.auction_desc)}</p>
                   <div class="card-actions">
                   <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
-                      <span class="action-state">Join</span>
+                    <span class="action-state">Join</span>
+                  </button>
+                  <button class="primary-action edit-button" data-auction="${auction}">
+                    <span class="action-state">Edit</span>
                   </button>
                   </div>
               </div>
@@ -243,7 +246,15 @@ $(document).on("click", ".join-button", function () {
     console.log('Join auction:', auctionId);
     window.location.href = `/auctions/${auctionId}`;
 });
+
+$(document).on("click", ".edit-button", function () { 
+    console.log("Button Clicked");
+    const auction = $(this).data('auction');
+    console.log('Edit auction:', auction.auction_id);
+    
+
+});
 // Load "All Auction" data by default on page load
 
 
-loadAuctionData("All Auction");
+// loadAuctionData("All Auction");
