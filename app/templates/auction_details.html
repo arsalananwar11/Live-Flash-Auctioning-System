@@ -82,12 +82,9 @@
             </tbody>
         </table>
     </div>
-    
-    {% if auction.is_active %}
-        <div class="bid-buttons">
-            <!-- Bid buttons or forms can be added here -->
-        </div>
-    {% endif %}
+    <div class="bid-buttons">
+        <!-- Bid buttons or forms can be added here -->
+    </div>
 </main>
 
 <script type="module">
@@ -96,10 +93,13 @@
   // Data passed from the backend
   const websocketUrl = "{{ websocket_url }}";
   const userId = "{{ user_id }}";
+  const userName = "{{ current_user.name }}";
   const auctionId = "{{ auction_id }}";
+//   const is_active = "{{ is_active }}" === "True";
+  const is_active = true;
 
   console.log("Initializing WebSocket...");
-  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, is_active, userName);
   auctionSocket.connect();
 
   // Expose the auctionSocket for further interactions (like bid placement)
