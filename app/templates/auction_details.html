@@ -47,11 +47,10 @@
         {% if not auction.is_active %}
             <div class="time-frame">
                 {{ start_time.strftime('%H:%M:%S') if start_time else 'TBD' }}
+                <div class="time-frame" id="remaining-time">Loading...</div>
             </div>
         {% else %}
-            <div class="time-frame">
-                <span>00:00:00</span>
-            </div>
+            <div class="time-frame" id="remaining-time">Loading...</div>
         {% endif %}
         <div class="bid-frame">
             <span>$</span>
