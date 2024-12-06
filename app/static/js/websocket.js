@@ -1,3 +1,6 @@
+const remainingTimeElement = document.getElementById("remaining-time");
+const errorMessageElement = document.getElementById("error-message");
+
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId) {
     this.websocketUrl = websocketUrl;
@@ -30,6 +33,23 @@ export class AuctionWebSocket {
         // Store the connection ID from the server
         this.connectionId = message.connectionId;
         console.log(`Connection ID set: ${this.connectionId}`);
+      }
+
+      if (message.remaining_time) {
+        const remainingTime = message.remaining_time;
+        // Update UI
+        remainingTimeElement.textContent = remainingTime;
+        if(remainingTime != "Auction has ended"){
+          // Parse the remaining time into seconds for countdown logic
+          const timeParts = remainingTime.split(":");
+          const hours = parseInt(timeParts[0], 10);
+          const minutes = parseInt(timeParts[1], 10);
+          const seconds = parseInt(timeParts[2], 10);
+          let totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+          // Start countdown
+          startCountdown(totalSeconds);
+        }
       }
 
       if (message.type === "leaderboardUpdate") {
@@ -101,4 +121,25 @@ export class AuctionWebSocket {
       console.log("WebSocket disconnected.");
     }
   }
+}
+
+// Countdown logic to update time every second
+function startCountdown(totalSeconds) {
+  const interval = setInterval(() => {
+      if (totalSeconds <= 0) {
+          clearInterval(interval);
+          remainingTimeElement.textContent = "Time is up!";
+          return;
+      }
+
+      totalSeconds--;
+
+      // Calculate hours, minutes, and seconds
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      // Update UI
+      remainingTimeElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, 1000);
 }
