@@ -109,7 +109,7 @@ export class AuctionWebSocket {
       return;
     }
 
-    if (this.userName === leaderboard[0].user_name) {
+    if (this.userId === leaderboard[0].user_id) {
       // disable all buttons
       document.querySelectorAll(".bid-button").forEach((button) => {
         button.disabled = true;
