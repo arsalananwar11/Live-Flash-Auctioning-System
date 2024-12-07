@@ -3,8 +3,9 @@ import os
 import uuid
 import boto3
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 import pymysql
+
 
 s3_client = boto3.client("s3")
 eventbridge_client = boto3.client("events")
@@ -111,7 +112,12 @@ def upload_to_s3(base64_data, auction_id, filename):
 
 
 def update_dynamodb_with_rules(
-    auction_id, start_time, end_time, start_rule_name, end_rule_name
+    auction_id,
+    start_time,
+    end_time,
+    start_rule_name,
+    end_rule_name,
+    resource_creation_rule_name,
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -125,6 +131,7 @@ def update_dynamodb_with_rules(
                 "auction_status": "SCHEDULED",
                 "start_rule_name": start_rule_name,
                 "end_rule_name": end_rule_name,
+                "resource_creation_rule_name": resource_creation_rule_name,
             }
         )
         print(f"DynamoDB updated for auction {auction_id} with rules.")
@@ -224,7 +231,7 @@ def lambda_handler(event, context):
             f"StartAuction_{auction_id}",
             start_time,
             "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "IN_PROGRESS"},
+            {"auction_id": auction_id, "status": "STARTED"},
         )
         end_rule_name = create_eventbridge_rule(
             f"EndAuction_{auction_id}",
@@ -232,9 +239,23 @@ def lambda_handler(event, context):
             "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
             {"auction_id": auction_id, "status": "ENDED"},
         )
+        # creationTime = start_time - timedelta(minutes=5)
+        formatted_start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S")
+        creationTime = formatted_start_time - timedelta(minutes=5)
+        resource_creation_rule_name = create_eventbridge_rule(
+            f"ResourceCreationFor_{auction_id}",
+            creationTime.strftime("%Y-%m-%dT%H:%M:%S"),
+            "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
+            {"auction_id": auction_id, "status": "CREATING"},
+        )
 
         update_dynamodb_with_rules(
-            auction_id, start_time, end_time, start_rule_name, end_rule_name
+            auction_id,
+            start_time,
+            end_time,
+            start_rule_name,
+            end_rule_name,
+            resource_creation_rule_name,
         )
 
         return {
