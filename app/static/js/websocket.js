@@ -3,7 +3,7 @@ const errorMessageElement = document.getElementById("error-message");
 const bidButtonsDiv = document.querySelector('.bid-buttons-container');
 
 export class AuctionWebSocket {
-  constructor(websocketUrl, auctionId, userId, is_active, userName) {
+  constructor(websocketUrl, auctionId, userId, userName) {
     this.websocketUrl = websocketUrl;
     this.auctionId = auctionId;
     this.userId = userId;
