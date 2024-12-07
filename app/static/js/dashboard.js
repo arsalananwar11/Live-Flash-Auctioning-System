@@ -120,9 +120,7 @@ function renderAuctionData(auctions) {
                   <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
                     <span class="action-state">Join</span>
                   </button>
-                  <button class="primary-action edit-button" data-auction-id="${auction.auction_id}">
-                    <span class="action-state">Edit</span>
-                  </button>
+                  
                   </div>
               </div>
               </div>
@@ -131,6 +129,10 @@ function renderAuctionData(auctions) {
       `);
   });
 }
+
+{/* <button class="primary-action edit-button" data-auction-id="${auction.auction_id}">
+                    <span class="action-state">Edit</span>
+                  </button> */}
 
 function loadAuctionData(tabTitle) {
   const auctionRow = $('.auction-row');
@@ -246,13 +248,13 @@ $(document).on("click", ".join-button", function () {
     window.location.href = `/auctions/${auctionID}`;
 });
 
-$(document).on("click", ".edit-button", function () { 
-    console.log("Edit Button Clicked");
-    const auctionID = $(this).data("auction-id");
-    console.log('Editting auction:', auctionID);
-    window.location.href = `/auctions/edit/${auctionID}`;
+// $(document).on("click", ".edit-button", function () { 
+//     console.log("Edit Button Clicked");
+//     const auctionID = $(this).data("auction-id");
+//     console.log('Editting auction:', auctionID);
+//     window.location.href = `/auctions/edit/${auctionID}`;
 
-});
+// });
 // Load "All Auction" data by default on page load
 
 
