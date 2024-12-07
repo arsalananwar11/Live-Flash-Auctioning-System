@@ -1,5 +1,6 @@
 const remainingTimeElement = document.getElementById("remaining-time");
 const errorMessageElement = document.getElementById("error-message");
+const bidButtonsDiv = document.querySelector('.bid-buttons-container');
 
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId, is_active, userName) {
@@ -53,6 +54,15 @@ export class AuctionWebSocket {
           // Start countdown
           startCountdown(totalSeconds);
         }
+      }
+
+      
+      if(message.auction_status == "in_progress"){
+        if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
+          bidButtonsDiv.style.display = 'block';
+        }
+      } else {
+        bidButtonsDiv.style.display = 'none';
       }
 
       if (message.type === "leaderboardUpdate") {

@@ -309,6 +309,12 @@
     border: 0;
 }
 
+.bid-buttons-container {
+    display: none;
+    align-self: center;
+    margin: 0px 0 0 27px;
+}
+
 @media (max-width: 991px) {
     .auction-page {
         padding-bottom: 100px;
@@ -389,4 +395,5 @@
     .bid-button {
         white-space: initial;
     }
+
 }
