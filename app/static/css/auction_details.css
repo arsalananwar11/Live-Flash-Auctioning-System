@@ -259,6 +259,13 @@
     border: 1px solid #fff;
 }
 
+.bid-button:disabled {
+    background-color: #ccc; /* Light gray */
+    color: #666;           /* Dark gray */
+    cursor: not-allowed;   /* Not clickable */
+    opacity: 0.6;          /* Slight transparency */
+}
+
 .button-icon {
     aspect-ratio: 1;
     object-fit: contain;
@@ -300,6 +307,12 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+.bid-buttons-container {
+    display: none;
+    align-self: center;
+    margin: 0px 0 0 27px;
 }
 
 @media (max-width: 991px) {
@@ -382,4 +395,5 @@
     .bid-button {
         white-space: initial;
     }
+
 }

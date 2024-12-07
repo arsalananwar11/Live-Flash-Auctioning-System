@@ -5,17 +5,35 @@
   rel="stylesheet"
   href="{{ url_for('static', filename='css/auction_details.css') }}"
 />
+<script>
+    function disconnectAndGoBack() {
+      // Check if WebSocket connection exists
+      if (window.auctionSocket && window.auctionSocket.socket) {
+        // Ensure connectionId is available before sending the disconnect message
+        if (window.auctionSocket.connectionId) {
+          window.auctionSocket.sendMessage("disconnect", {
+            connection_id: window.auctionSocket.connectionId, // Use the connection ID
+          });
+        } else {
+          console.error("Connection ID is not available. Cannot send disconnect message.");
+        }
+
+        // Close the WebSocket connection
+        window.auctionSocket.disconnect();
+      } else {
+        console.error("WebSocket connection is not available.");
+      }
+
+      // Navigate back
+      window.history.back();
+    }
+</script>
 <main class="auction-page">
     <div class="product-info">
-        {% if auction.images and auction.images|length > 0 %}
-            <img src="data:image/jpeg;base64,{{ auction.images[0].base64 }}" alt="Product icon" class="product-icon" />
-        {% else %}
-            <img src="https://via.placeholder.com/150" alt="Product icon" class="product-icon" />
-        {% endif %}
-        <h2 class="auction-item">{{ auction.auction_item }}</h2>
+        <button onclick="disconnectAndGoBack()" class="back-button">Back</button>
     </div>
-    {% if auction.images and auction.images|length > 1 %}
-        <img src="data:image/jpeg;base64,{{ auction.images[1].base64 }}" alt="Product image" class="product-image" />
+    {% if auction.images and auction.images|length > 0 %}
+        <img src="data:image/jpeg;base64,{{ auction.images[0].base64 }}" alt="Product image" class="product-image" />
     {% else %}
         <img src="https://via.placeholder.com/300" alt="Product image" class="product-image" />
     {% endif %}
@@ -24,14 +42,23 @@
         <p class="auction-desc">
             {{ auction.auction_desc }}
         </p>
-        <div class="time-remaining">Time Remaining</div>
-        <div class="top-bid">Top Bid</div>
-        <div class="time-frame">00:32:10</div>
+        <div class="time-remaining">{% if auction.is_active %}Time Remaining{% else %}Starts At{% endif %}</div>
+        <div class="top-bid">{% if auction.is_active %}Top Bid{% else %}Starting Bid{% endif %}</div>
+        {% if not auction.is_active %}
+            <div class="time-frame">
+                {{ start_time.strftime('%H:%M:%S') if start_time else 'TBD' }}
+                <div class="time-frame" id="remaining-time">Loading...</div>
+            </div>
+        {% else %}
+            <div class="time-frame" id="remaining-time">Loading...</div>
+        {% endif %}
         <div class="bid-frame">
             <span>$</span>
-            <span>1200</span>
+            <span>{% if auction.is_active %}1200{% else %}{{ auction.base_price }}{% endif %}</span>
         </div>
     </div>
+    
+    
 
     <div class="leaderboard-container">
         <h3 class="leaderboard-title">Leaderboard</h3>
@@ -45,40 +72,34 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Leaderboard entries will be populated here -->
+                <!-- Placeholder row for when there are no bids -->
+                <tr class="no-bids-row">
+                    <td colspan="4" class="no-bids-message">
+                        <div class="cell-content">No bids placed yet</div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
     
-    <div class="bid-buttons">
-        <!-- Bid buttons or forms can be added here -->
+    <div class="bid-buttons-container">
+        <div class="bid-buttons">
+            <!-- Bid buttons or forms can be added here -->
+        </div>
     </div>
 </main>
 
-<!-- <script>
-  // Data passed from the backend
-  const websocketUrl = "{{ websocket_url }}";
-  const userId = "{{ user_id }}";
-  const auctionId = "{{ auction_id }}";
-
-  console.log("Connecting to WebSocket...");
-  console.log(`Auction ID: ${auctionId}, User ID: ${userId}`);
-
-  // Establish WebSocket connection
-  const socket = new WebSocket(
-    `${websocketUrl}?auction_id=${auctionId}&user_id=${userId}`
-  );
-</script> -->
 <script type="module">
   import { AuctionWebSocket } from "../static/js/websocket.js";
 
   // Data passed from the backend
   const websocketUrl = "{{ websocket_url }}";
   const userId = "{{ user_id }}";
+  const userName = "{{ current_user.name }}";
   const auctionId = "{{ auction_id }}";
 
   console.log("Initializing WebSocket...");
-  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, userName);
   auctionSocket.connect();
 
   // Expose the auctionSocket for further interactions (like bid placement)
