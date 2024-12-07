@@ -57,11 +57,18 @@
     font: 700 24px/1.2 Rubik, sans-serif;
 }
 
-.product-icon {
+.back-icon {
     aspect-ratio: 0.95;
     object-fit: contain;
     width: 40px;
 }
+.back-icon > i{
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    background-color: #030303;
+}
+
 
 .auction-item {
     align-self: start;
