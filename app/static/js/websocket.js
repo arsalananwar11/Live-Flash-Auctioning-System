@@ -60,7 +60,7 @@ export class AuctionWebSocket {
         if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
           bidButtonsDiv.style.display = 'block';
         }
-      } else {
+      } else if (message.auction_status == "about_to_start" || message.auction_status == "ended") {
         bidButtonsDiv.style.display = 'none';
       }
 
