@@ -74,6 +74,9 @@ def lambda_handler(event, context):
         end_time = body.get("end_time")
         product_images = body.get("product_images", [])
         created_by = body.get("created_by")
+        default_time_increment = body.get("default_time_increment")
+        default_time_increment_before = body.get("default_time_increment_before")
+        stop_snipes_after = body.get("stop_snipes_after")
 
         if (
             not auction_item
@@ -95,13 +98,18 @@ def lambda_handler(event, context):
         connection = connect_to_rds()
         with connection.cursor() as cursor:
             insert_query = """
-                INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by, created_on, modified_on
+                INSERT INTO auction (
+                    auction_id, auction_item, auction_desc, base_price, start_time, end_time, 
+                    is_active, created_by, created_on, modified_on, default_time_increment, 
+                    default_time_increment_before, stop_snipes_after
                 ) VALUES (
-                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
-                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
-                    %(created_on)s, %(modified_on)s
+                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s, 
+                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s, 
+                    %(created_on)s, %(modified_on)s, %(default_time_increment)s, 
+                    %(default_time_increment_before)s, %(stop_snipes_after)s
                 )
             """
+
             cursor.execute(
                 insert_query,
                 {
@@ -115,6 +123,9 @@ def lambda_handler(event, context):
                     "created_by": created_by,
                     "created_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "modified_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "default_time_increment": default_time_increment,
+                    "default_time_increment_before": default_time_increment_before,
+                    "stop_snipes_after": stop_snipes_after,
                 },
             )
             connection.commit()

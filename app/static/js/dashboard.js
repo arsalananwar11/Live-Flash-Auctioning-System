@@ -99,7 +99,7 @@ function renderAuctionData(auctions) {
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
-          <article class="auction-column">
+          <div class="auction-column">
           <div class="auction-card">
               <div class="card-content">
               <header class="card-header">
@@ -120,14 +120,14 @@ function renderAuctionData(auctions) {
                   <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
                     <span class="action-state">Join</span>
                   </button>
-                  <button class="primary-action edit-button" data-auction="${auction}">
+                  <button class="primary-action edit-button" data-auction-id="${auction.auction_id}">
                     <span class="action-state">Edit</span>
                   </button>
                   </div>
               </div>
               </div>
           </div>
-          </article>
+          </div>
       `);
   });
 }
@@ -242,19 +242,18 @@ $(document).on("click", ".join-button", function () {
     connectToWebSocket(auctionID);
     console.log("Button Clicked");
     console.log(`Attempting to join auction: ${auctionID}`);
-    const auctionId = $(this).data('auction-id');
-    console.log('Join auction:', auctionId);
-    window.location.href = `/auctions/${auctionId}`;
+    console.log('Join auction:', auctionID);
+    window.location.href = `/auctions/${auctionID}`;
 });
 
 $(document).on("click", ".edit-button", function () { 
-    console.log("Button Clicked");
-    const auction = $(this).data('auction');
-    console.log('Edit auction:', auction.auction_id);
-    
+    console.log("Edit Button Clicked");
+    const auctionID = $(this).data("auction-id");
+    console.log('Editting auction:', auctionID);
+    window.location.href = `/auctions/edit/${auctionID}`;
 
 });
 // Load "All Auction" data by default on page load
 
 
-// loadAuctionData("All Auction");
+loadAuctionData("All Auction");

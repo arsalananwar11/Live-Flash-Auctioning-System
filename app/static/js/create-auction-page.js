@@ -1,58 +1,46 @@
 $(document).ready(function () {
     // Handle form submission
-    $("#create-auction-form").submit(function (event) {
-        event.preventDefault(); // Prevent default form submission
+    $("#auction-form").submit(function (event) {
+        event.preventDefault();
+        
+        $(".create-button").prop("disabled", true).text("Processing...");
 
-        // Get form data
         const formData = new FormData(this);
 
-        // Handle image upload and convert to Base64
         const images = document.getElementById("image-upload").files;
         if (images.length > 0) {
             const promises = Array.from(images).map((image) => {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(",")[1]); // Extract Base64 string
-                    reader.onerror = (e) => reject(`Error reading file: ${e.target.error.message}`);
+                    reader.onload = () => resolve(reader.result.split(",")[1]);
+                    reader.onerror = (e) => reject(e);
                     reader.readAsDataURL(image);
                 });
             });
 
-            // Show processing state
-            $(".create-button").prop("disabled", true).text("Processing...");
-
-            // Convert images to Base64 and append to formData
             Promise.all(promises)
                 .then((base64Images) => {
                     formData.append("images", JSON.stringify(base64Images));
-
-                    // Send data to the Flask controller
                     $.ajax({
-                        url: "/create-auction",
-                        type: "POST",
+                        url: this.action, 
+                        type: this.method, 
                         data: formData,
                         contentType: false,
                         processData: false,
-                        success: function (response) {
+                        success: function () {
                             alert("Auction created successfully!");
-                            window.location.href = "/dashboard"; // Redirect to dashboard
+                            window.location.href = "/dashboard";
                         },
-                        error: function (xhr, status, error) {
-                            console.error("Error creating auction:", error);
-                            alert("Failed to create the auction. Please try again.");
-                        },
-                        complete: function () {
-                            $(".create-button").prop("disabled", false).text("Create Auction");
+                        error: function (xhr) {
+                            console.error("Error:", xhr.responseText);
+                            alert("Failed to create auction.");
                         },
                     });
                 })
-                .catch((error) => {
-                    console.error("Error processing images:", error);
-                    alert("Error processing images. Please try again.");
-                    $(".create-button").prop("disabled", false).text("Create Auction");
+                .catch((err) => {
+                    alert("Error processing images.");
+                    console.error(err);
                 });
-        } else {
-            alert("Please upload at least one image.");
         }
     });
 
