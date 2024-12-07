@@ -95,6 +95,7 @@ export class AuctionWebSocket {
     tableBody.innerHTML = ""; // Clear current leaderboard
 
     console.log("Leaderboard updated:", leaderboard);
+    document.querySelector(".bid-frame span:last-child").textContent = `$${leaderboard[0]['bid_amount']}`;
 
     if (leaderboard.length === 0) {
       const row = document.createElement("tr");
