@@ -95,10 +95,11 @@
   // Data passed from the backend
   const websocketUrl = "{{ websocket_url }}";
   const userId = "{{ user_id }}";
+  const userName = "{{ current_user.name }}";
   const auctionId = "{{ auction_id }}";
 
   console.log("Initializing WebSocket...");
-  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, userName);
   auctionSocket.connect();
 
   // Expose the auctionSocket for further interactions (like bid placement)

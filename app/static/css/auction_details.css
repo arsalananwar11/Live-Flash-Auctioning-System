@@ -259,6 +259,13 @@
     border: 1px solid #fff;
 }
 
+.bid-button:disabled {
+    background-color: #ccc; /* Light gray */
+    color: #666;           /* Dark gray */
+    cursor: not-allowed;   /* Not clickable */
+    opacity: 0.6;          /* Slight transparency */
+}
+
 .button-icon {
     aspect-ratio: 1;
     object-fit: contain;

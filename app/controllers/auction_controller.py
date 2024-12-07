@@ -36,7 +36,6 @@ def auction_details(auction_id):
         # Simulate a user ID for testing purposes
         user_id = current_user.id
 
-        # Convert start_time to datetime object
         start_time_str = target_auction.get("start_time")
         start_time = None
         if start_time_str:
@@ -57,40 +56,6 @@ def auction_details(auction_id):
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# def auction_details(auction_id):
-#     # target_auction = AuctionService().get_auction(auction_id)
-
-#     # if target_auction is None:
-#     #     return "Auction not found", 404
-
-#     # return render_template("auction_details.html", auction=target_auction)
-#     try:
-#         # Fetch the target auction
-#         target_auction = AuctionService().get_target_auction(auction_id)
-
-#         if target_auction is None:
-#             return "Auction not found", 404
-
-#         # Fetch WebSocket URL from the environment
-#         websocket_url = os.getenv("WEB_SOCKET_URL")
-#         if not websocket_url:
-#             return "WebSocket URL not configured", 500
-
-#         # Simulate a user ID for testing purposes
-#         user_id = current_user.id
-
-#         # Pass data to the frontend
-#         return render_template(
-#             "auction_details.html",
-#             auction=target_auction,
-#             websocket_url=websocket_url,
-#             user_id=user_id,
-#             auction_id=auction_id,
-#         )
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
 
 
 @auction_controller.route("/create")

@@ -3,11 +3,13 @@ const errorMessageElement = document.getElementById("error-message");
 const bidButtonsDiv = document.querySelector('.bid-buttons-container');
 
 export class AuctionWebSocket {
-  constructor(websocketUrl, auctionId, userId) {
+  constructor(websocketUrl, auctionId, userId, userName) {
     this.websocketUrl = websocketUrl;
     this.auctionId = auctionId;
     this.userId = userId;
+    this.userName = userName;
     this.socket = null;
+    this.topBid = 0;
     this.connectionId = null; // Store the connection ID received from the server
   }
 
@@ -58,7 +60,7 @@ export class AuctionWebSocket {
         if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
           bidButtonsDiv.style.display = 'block';
         }
-      } else {
+      } else if (message.auction_status == "about_to_start" || message.auction_status == "ended") {
         bidButtonsDiv.style.display = 'none';
       }
 
@@ -92,6 +94,20 @@ export class AuctionWebSocket {
     const tableBody = document.querySelector(".leaderboard-table tbody");
     tableBody.innerHTML = ""; // Clear current leaderboard
 
+    console.log("Leaderboard updated:", leaderboard);
+
+    if (leaderboard.length === 0) {
+      const row = document.createElement("tr");
+      row.classList.add("no-bids-row");
+      row.innerHTML = `
+        <td colspan="4" class="no-bids-message">
+          <div class="cell-content">No bids placed yet</div>
+        </td>
+      `;
+      tableBody.appendChild(row);
+      return;
+    }
+
     leaderboard.forEach((entry, index) => {
       const row = document.createElement("tr");
       row.classList.add("table-row");
@@ -106,6 +122,8 @@ export class AuctionWebSocket {
       `;
       tableBody.appendChild(row);
     });
+
+    this.topBid = leaderboard[0].bid_amount;
   }
 
   disconnectAndSendMessage() {
@@ -114,8 +132,6 @@ export class AuctionWebSocket {
         // Send the disconnect message with the connection ID
         this.sendMessage("disconnect", {
           connection_id: this.connectionId,
-          user_id: this.userId,
-          auction_id: this.auctionId,
         });
       } else {
         console.error("Connection ID is not available. Cannot send disconnect message.");
