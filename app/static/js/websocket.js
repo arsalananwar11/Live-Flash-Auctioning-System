@@ -140,7 +140,7 @@ export class AuctionWebSocket {
     });
 
     this.topBid = leaderboard[0].bid_amount;
-    this.topBidUser = leaderboard[0].user_name;
+    this.topBidUser = leaderboard[0].user_id;
   }
 
   disconnectAndSendMessage() {
