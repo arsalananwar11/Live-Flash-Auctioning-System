@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const newBid = (
           Number(currentBid.replace(/[^\d.-]/g, "")) * (1 + increment / 100)
         ).toFixed(2);
-        document.querySelector(".bid-frame span:last-child").textContent = `$${newBid}`;
+        // document.querySelector(".bid-frame span:last-child").textContent = `$${newBid}`;
   
         // Send the new bid through WebSocket
         placeBid(newBid);

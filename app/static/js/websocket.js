@@ -10,6 +10,7 @@ export class AuctionWebSocket {
     this.userName = userName;
     this.socket = null;
     this.topBid = 0;
+    this.topBidUser = "";
     this.connectionId = null; // Store the connection ID received from the server
   }
 
@@ -108,6 +109,21 @@ export class AuctionWebSocket {
       return;
     }
 
+    if (this.userId === leaderboard[0].user_id) {
+      // disable all buttons
+      document.querySelectorAll(".bid-button").forEach((button) => {
+        button.disabled = true;
+      });
+    }
+    else {
+      // enable all buttons
+      document.querySelectorAll(".bid-button").forEach((button) => {
+        button.disabled = false;
+      });
+    }
+      
+    document.querySelector(".bid-frame span:last-child").textContent = `${leaderboard[0]['bid_amount']}`;
+
     leaderboard.forEach((entry, index) => {
       const row = document.createElement("tr");
       row.classList.add("table-row");
@@ -118,12 +134,13 @@ export class AuctionWebSocket {
         <td class="table-cell"><div class="cell-content">$${entry.bid_amount}</div></td>
         <td class="table-cell"><div class="cell-content">${new Date(
           entry.timestamp * 1000
-        ).toLocaleTimeString()}</div></td>
+        ).toLocaleString()}</div></td>
       `;
       tableBody.appendChild(row);
     });
 
     this.topBid = leaderboard[0].bid_amount;
+    this.topBidUser = leaderboard[0].user_id;
   }
 
   disconnectAndSendMessage() {
