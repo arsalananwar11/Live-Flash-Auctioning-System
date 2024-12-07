@@ -4,164 +4,162 @@
   href="{{ url_for('static', filename='css/create-auction-page.css') }}"
 />
 <section class="auction-form">
-  <main class="main-content">
-    <div class="section-header">
-      <h2 class="section-title">Create New Auction</h2>
-    </div>
-
-    <form id="create-auction-form" class="form-container">
-      <div class="form-column">
-        <label for="auction_item" class="form-label">Product Name</label>
-        <input
-          type="text"
-          id="auction_item"
-          name="auction_item"
-          class="form-input"
-          placeholder="Name"
-          required
-        />
-
-        <label for="auction_desc" class="form-label">Product Description</label>
-        <textarea
-          id="auction_desc"
-          name="auction_desc"
-          class="form-textarea"
-          placeholder="Description"
-        ></textarea>
-
-        <label for="base_price" class="form-label">Initial Bid: ($)</label>
-        <input
-          type="number"
-          id="base_price"
-          name="base_price"
-          class="form-input bid-input"
-          placeholder="Minimum $1"
-          min="1"
-          required
-        />
-
-        <div class="date-time-container">
-          <div>
-            <label for="start-date" class="form-label">Start Date</label>
-            <input
-              type="date"
-              id="start-date"
-              name="start_date"
-              class="form-input"
-              required
-            />
-          </div>
-          <div>
-            <label for="start-time" class="form-label">Start Time</label>
-            <input
-              type="time"
-              id="start-time"
-              name="start_time"
-              class="form-input"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="end-date" class="form-label">End Date</label>
-            <input
-              type="date"
-              id="end-date"
-              name="end_date"
-              class="form-input"
-              required
-            />
-          </div>
-          <div>
-            <label for="end-time" class="form-label">End Time</label>
-            <input
-              type="time"
-              id="end-time"
-              name="end_time"
-              class="form-input"
-              required
-            />
-          </div>
+    <main class="main-content">
+        <div class="section-header">
+            <h2 class="section-title">
+                {% if auction %}
+                    Edit Auction
+                {% else %}
+                    Create New Auction
+                {% endif %}
+            </h2>
         </div>
 
-        <label for="default_time_increment" class="form-label"
-          >Default Time Increment: (minutes)</label
-        >
-        <input
-          type="number"
-          id="default_time_increment"
-          name="default_time_increment"
-          class="form-input bid-input"
-          placeholder="Default 5 minutes"
-          min="1"
-          required
-        />
+        <form id="auction-form" class="form-container" method="POST" action="{% if auction %}/auctions/edit/{{ auction_id }}{% else %}/create-auction{% endif %}" enctype="multipart/form-data">
+            <div class="form-column">
+                <label for="auction_item" class="form-label">Product Name</label>
+                <input 
+                    type="text" 
+                    id="auction_item" 
+                    name="auction_item" 
+                    class="form-input" 
+                    placeholder="Name" 
+                    required 
+                    value="{{ auction.auction_item if auction else '' }}" />
 
-        <label for="default_time_increment_before" class="form-label"
-          >Default time increment before: (minutes)</label
-        >
-        <input
-          type="number"
-          id="default_time_increment_before"
-          name="default_time_increment_before"
-          class="form-input bid-input"
-          placeholder="Default 5 minutes"
-          min="1"
-          required
-        />
+                <label for="auction_desc" class="form-label">Product Description</label>
+                <textarea 
+                    id="auction_desc" 
+                    name="auction_desc" 
+                    class="form-textarea" 
+                    placeholder="Description">{{ auction.auction_desc if auction else '' }}</textarea>
 
-        <label for="stop_snipes_after" class="form-label"
-          >Stop snipes after: (minutes)</label
-        >
-        <input
-          type="number"
-          id="stop_snipes_after"
-          name="stop_snipes_after"
-          class="form-input bid-input"
-          placeholder="Default 10 snipes"
-          min="1"
-          required
-        />
-      </div>
+                <label for="base_price" class="form-label">Initial Bid: ($)</label>
+                <input 
+                    type="number" 
+                    id="base_price" 
+                    name="base_price" 
+                    class="form-input bid-input" 
+                    placeholder="Minimum $1" 
+                    min="1" 
+                    required 
+                    value="{{ auction.base_price if auction else '' }}" />
 
-      <div class="form-column">
-        <div class="image-upload-container">
-          <input
-            type="file"
-            id="image-upload"
-            name="images"
-            multiple
-            accept="image/*"
-            style="display: none"
-          />
-          <label for="image-upload" class="upload-text"
-            >Click to Upload Images</label
-          >
-          <div id="image-preview" class="image-preview"></div>
-          <!-- Container for image thumbnails -->
-        </div>
-      </div>
+                <div class="date-time-container">
+                    <div>
+                        <label for="start-date" class="form-label">Start Date</label>
+                        <input 
+                            type="date" 
+                            id="start-date" 
+                            name="start_date" 
+                            class="form-input" 
+                            required 
+                            value="{{ auction.start_time.strftime('%Y-%m-%d') if auction and auction.start_time else '' }}" />
+                    </div>
+                    <div>
+                        <label for="start-time" class="form-label">Start Time</label>
+                        <input 
+                            type="time" 
+                            id="start-time" 
+                            name="start_time" 
+                            class="form-input" 
+                            required 
+                            value="{{ auction.start_time.strftime('%H:%M') if auction and auction.start_time else '' }}" />
+                    </div>
 
-      <div class="terms-container">
-        <div class="terms-checkbox">
-          <input type="checkbox" id="terms" name="terms" required />
-          <label for="terms">I accept the terms</label>
-        </div>
-        <a href="#" class="terms-link">Read our T&Cs</a>
-      </div>
+                    <div>
+                        <label for="end-date" class="form-label">End Date</label>
+                        <input 
+                            type="date" 
+                            id="end-date" 
+                            name="end_date" 
+                            class="form-input" 
+                            required 
+                            value="{{ auction.end_time.strftime('%Y-%m-%d') if auction and auction.end_time else '' }}" />
+                    </div>
+                    <div>
+                        <label for="end-time" class="form-label">End Time</label>
+                        <input 
+                            type="time" 
+                            id="end-time" 
+                            name="end_time" 
+                            class="form-input" 
+                            required 
+                            value="{{ auction.end_time.strftime('%H:%M') if auction and auction.end_time else '' }}" />
+                    </div>
+                </div>
 
-      <div class="button-container">
-        <button type="submit" class="create-button">Create Auction</button>
-        <button
-          type="button"
-          class="cancel-button"
-          onclick="window.location.href='/dashboard'"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  </main>
+                <label for="default_time_increment" class="form-label">Default Time Increment: (minutes)</label>
+                <input 
+                    type="number" 
+                    id="default_time_increment" 
+                    name="default_time_increment" 
+                    class="form-input bid-input" 
+                    placeholder="Default 5 minutes" 
+                    min="1"  
+                    value="{{ auction.default_time_increment if auction else 5 }}" />
+
+                <label for="default_time_increment_before" class="form-label">Default time increment before: (minutes)</label>
+                <input 
+                    type="number" 
+                    id="default_time_increment_before" 
+                    name="default_time_increment_before" 
+                    class="form-input bid-input" 
+                    placeholder="Default 5 minutes" 
+                    min="1"  
+                    value="{{ auction.default_time_increment_before if auction else 5 }}" />
+
+                <label for="stop_snipes_after" class="form-label">Stop snipes after: (count)</label>
+                <input 
+                    type="number" 
+                    id="stop_snipes_after" 
+                    name="stop_snipes_after" 
+                    class="form-input bid-input" 
+                    placeholder="Default 10 snipes" 
+                    min="1"  
+                    value="{{ auction.stop_snipes_after if auction else 10 }}" />
+            </div>
+
+            <div class="form-column">
+                {% if auction %}
+                    <div class="image-upload-container">
+                        <input type="file" id="image-upload" name="images" multiple accept="image/*" >Click to Upload Images</label>
+                        <div id="image-preview" class="image-preview"></div>
+                    </div>
+                {% else %}
+                    <div class="image-upload-container">
+                        <input type="file" id="image-upload" name="images" multiple accept="image/*" required>Click to Upload Images</label>
+                        <div id="image-preview" class="image-preview"></div>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <div class="terms-container">
+                <div class="terms-checkbox">
+                    <input 
+                        type="checkbox" 
+                        id="terms" 
+                        name="terms" 
+                        required 
+                        {% if auction and auction.terms_accepted %}checked{% endif %} />
+                    <label for="terms">I accept the terms</label>
+                </div>
+                <a href="#" class="terms-link">Read our T&Cs</a>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="create-button">
+                    {% if auction %}
+                        Update Auction
+                    {% else %}
+                        Create Auction
+                    {% endif %}
+                </button>
+                <button type="button" class="cancel-button" onclick="window.location.href='/dashboard'">Cancel</button>
+            </div>
+        </form>
+    </main>
 </section>
 <script src="{{ url_for('static', filename='js/create-auction-page.js') }}"></script>
 {% endblock %}
