@@ -9,6 +9,7 @@ export class AuctionWebSocket {
     this.userName = userName;
     this.is_active = is_active;
     this.socket = null;
+    this.topBid = 0;
     this.connectionId = null; // Store the connection ID received from the server
   }
 
@@ -113,8 +114,7 @@ export class AuctionWebSocket {
       tableBody.appendChild(row);
     });
 
-    const topBid = leaderboard[0].bid_amount;
-    document.querySelector(".bid-frame span:last-child").textContent = `$${topBid}`;
+    this.topBid = leaderboard[0].bid_amount;
   }
 
   disconnectAndSendMessage() {

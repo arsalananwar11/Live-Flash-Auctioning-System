@@ -10,6 +10,7 @@ from flask import session
 
 auction_controller = Blueprint("auction_controller", __name__)
 
+
 @auction_controller.route("/auctions")
 # @login_required
 def auctions():
@@ -37,28 +38,21 @@ def auction_details(auction_id):
 
         # Convert start_time and end_time to datetime object
         start_time_str = target_auction.get("start_time")
-        end_time_str = target_auction.get("end_time")
-        start_time = None    
-        end_time = None
+        # end_time_str = target_auction.get("end_time")
+        start_time = None
+        # end_time = None
         if start_time_str:
             try:
                 start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
             except ValueError as e:
                 # Log the error and keep `start_time` as None
                 print(f"Error parsing start_time: {e}")
-        if end_time_str:
-            try:
-                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-            except ValueError as e:
-                # Log the error and keep `end_time` as None
-                print(f"Error parsing end_time: {e}")
-
-        # Check if the auction is active
-        is_active = False
-        if start_time and end_time:
-            current_time = datetime.utcnow()
-            if start_time < current_time < end_time:
-                is_active = True
+        # if end_time_str:
+        #     try:
+        #         end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+        #     except ValueError as e:
+        #         # Log the error and keep `end_time` as None
+        #         print(f"Error parsing end_time: {e}")
 
         # Pass data to the frontend
         return render_template(
@@ -67,7 +61,7 @@ def auction_details(auction_id):
             websocket_url=websocket_url,
             user_id=user_id,
             auction_id=auction_id,
-            start_time=start_time
+            start_time=start_time,
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
