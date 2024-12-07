@@ -1,5 +1,6 @@
 const remainingTimeElement = document.getElementById("remaining-time");
 const errorMessageElement = document.getElementById("error-message");
+const bidButtonsDiv = document.querySelector('.bid-buttons-container');
 
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId) {
@@ -52,6 +53,15 @@ export class AuctionWebSocket {
         }
       }
 
+      
+      if(message.auction_status == "in_progress"){
+        if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
+          bidButtonsDiv.style.display = 'block';
+        }
+      } else {
+        bidButtonsDiv.style.display = 'none';
+      }
+
       if (message.type === "leaderboardUpdate") {
         this.updateLeaderboard(message.leaderboard);
       } else if (message.type === "error") {
@@ -88,7 +98,7 @@ export class AuctionWebSocket {
 
       row.innerHTML = `
         <td class="table-cell"><div class="cell-content">${index + 1}</div></td>
-        <td class="table-cell"><div class="cell-content">${entry.username}</div></td>
+        <td class="table-cell"><div class="cell-content">${entry.user_name}</div></td>
         <td class="table-cell"><div class="cell-content">$${entry.bid_amount}</div></td>
         <td class="table-cell"><div class="cell-content">${new Date(
           entry.timestamp * 1000
