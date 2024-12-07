@@ -98,10 +98,9 @@
   const userName = "{{ current_user.name }}";
   const auctionId = "{{ auction_id }}";
   // const is_active = "{{ is_active }}" === "True";
-  const is_active = true;
 
   console.log("Initializing WebSocket...");
-  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, is_active, userName);
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, userName);
   auctionSocket.connect();
 
   // Expose the auctionSocket for further interactions (like bid placement)

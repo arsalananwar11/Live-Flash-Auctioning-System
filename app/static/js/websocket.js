@@ -8,7 +8,6 @@ export class AuctionWebSocket {
     this.auctionId = auctionId;
     this.userId = userId;
     this.userName = userName;
-    this.is_active = is_active;
     this.socket = null;
     this.topBid = 0;
     this.connectionId = null; // Store the connection ID received from the server
