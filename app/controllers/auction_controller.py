@@ -1,6 +1,6 @@
 from datetime import datetime
 import traceback
-from flask import Blueprint, redirect, render_template, jsonify, request, url_for
+from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
@@ -57,6 +57,7 @@ def auction_details(auction_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @auction_controller.route("/auctions/edit/<string:auction_id>", methods=["POST"])
 def submit_edit(auction_id):
     print(f"Received PATCH request for auction_id: {auction_id}")
@@ -81,22 +82,30 @@ def submit_edit(auction_id):
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(start_datetime, datetime_format).isoformat(),
+            "start_time": datetime.strptime(
+                start_datetime, datetime_format
+            ).isoformat(),
             "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
-            "default_time_increment": int(request.form.get("default_time_increment", 5)),
-            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
             "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
             "images": image_file,
         }
 
-        print(f"Received auction data now calling edit_auction")
+        print("Received auction data now calling edit_auction")
         response = AuctionService().edit_auction(auction_id, auction_data)
         if response.get("status_code") == 200:
             return jsonify({"message": "Auction updated successfully!"}), 200
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
         else:
             return (
-                jsonify({"error": "Failed to update auction", "details": response.json()}),
+                jsonify(
+                    {"error": "Failed to update auction", "details": response.json()}
+                ),
                 response.status_code,
             )
 
@@ -104,6 +113,7 @@ def submit_edit(auction_id):
         print("Exception occurred:", e)
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 @auction_controller.route("/auctions/edit/<string:auction_id>", methods=["GET"])
 def edit_auction(auction_id):
@@ -220,10 +230,16 @@ def create_auction():
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(start_datetime, datetime_format).isoformat(),
+            "start_time": datetime.strptime(
+                start_datetime, datetime_format
+            ).isoformat(),
             "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
-            "default_time_increment": int(request.form.get("default_time_increment", 5)),
-            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
             "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
             "images": image_file,
         }
@@ -234,7 +250,9 @@ def create_auction():
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
         else:
             return (
-                jsonify({"error": "Failed to create auction", "details": response.json()}),
+                jsonify(
+                    {"error": "Failed to create auction", "details": response.json()}
+                ),
                 response.status_code,
             )
 

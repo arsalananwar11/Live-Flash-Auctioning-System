@@ -7,11 +7,11 @@ from datetime import datetime
 import pymysql
 
 s3_client = boto3.client("s3")
-eventbridge_client = boto3.client('events')
-lambda_client = boto3.client('lambda')
+eventbridge_client = boto3.client("events")
+lambda_client = boto3.client("lambda")
 
-dynamodb = boto3.resource('dynamodb')
-auction_table = dynamodb.Table('auction-connections')
+dynamodb = boto3.resource("dynamodb")
+auction_table = dynamodb.Table("auction-connections")
 
 # RDS settings from environment variables
 proxy_host_name = os.environ["DB_HOSTNAME"]
@@ -37,7 +37,9 @@ def convert_to_cron(timestamp):
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
     except ValueError as e:
-        raise ValueError(f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format.") from e
+        raise ValueError(
+            f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format."
+        ) from e
 
 
 def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
@@ -49,19 +51,15 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
             Name=rule_name,
             ScheduleExpression=f"cron({cron_expression})",
             State="ENABLED",
-            Description=f"Trigger for auction {input_data['auction_id']} at {time}"
+            Description=f"Trigger for auction {input_data['auction_id']} at {time}",
         )
         rule_arn = response["RuleArn"]
 
         eventbridge_client.put_targets(
             Rule=rule_name,
             Targets=[
-                {
-                    "Id": "1",
-                    "Arn": target_lambda_arn,
-                    "Input": json.dumps(input_data)
-                }
-            ]
+                {"Id": "1", "Arn": target_lambda_arn, "Input": json.dumps(input_data)}
+            ],
         )
 
         # Add permission for EventBridge to invoke the Lambda
@@ -70,7 +68,7 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
             StatementId=f"{rule_name}-permission",
             Action="lambda:InvokeFunction",
             Principal="events.amazonaws.com",
-            SourceArn=rule_arn
+            SourceArn=rule_arn,
         )
 
         print(f"Created EventBridge rule: {rule_name}")
@@ -79,7 +77,7 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
         print(f"Error creating EventBridge rule: {str(e)}")
         raise
 
-    
+
 def connect_to_rds():
     try:
 
@@ -105,31 +103,35 @@ def upload_to_s3(base64_data, auction_id, filename):
             Bucket=S3_BUCKET_NAME,
             Key=s3_key,
             Body=decoded_data,
-            ContentType="image/jpeg", 
+            ContentType="image/jpeg",
         )
         return f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     except Exception as e:
         raise Exception(f"Failed to upload to S3: {str(e)}")
 
-def update_dynamodb_with_rules(auction_id, start_time, end_time, start_rule_name, end_rule_name):
+
+def update_dynamodb_with_rules(
+    auction_id, start_time, end_time, start_rule_name, end_rule_name
+):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
     """
     try:
-        response = auction_table.put_item(
+        auction_table.put_item(
             Item={
                 "auction_id": auction_id,
                 "auction_start_time": start_time,
                 "auction_end_time": end_time,
                 "auction_status": "SCHEDULED",
                 "start_rule_name": start_rule_name,
-                "end_rule_name": end_rule_name
+                "end_rule_name": end_rule_name,
             }
         )
         print(f"DynamoDB updated for auction {auction_id} with rules.")
     except Exception as e:
         print(f"Error updating DynamoDB: {str(e)}")
         raise
+
 
 def lambda_handler(event, context):
     # Log the incoming event for debugging
@@ -179,15 +181,13 @@ def lambda_handler(event, context):
         # Insert auction and images into the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
-            insert_query = """
-                INSERT INTO auction (
-                    auction_id, auction_item, auction_desc, base_price, start_time, end_time, 
-                    is_active, created_by, created_on, modified_on, default_time_increment, 
-                    default_time_increment_before, stop_snipes_after
-                ) VALUES (
-                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s, 
-                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s, 
-                    %(created_on)s, %(modified_on)s, %(default_time_increment)s, 
+            insert_query = """INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by,
+            created_on, modified_on, default_time_increment,
+            default_time_increment_before, stop_snipes_after)
+            VALUES (
+                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
+                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
+                    %(created_on)s, %(modified_on)s, %(default_time_increment)s,
                     %(default_time_increment_before)s, %(stop_snipes_after)s
                 )
             """
@@ -211,30 +211,32 @@ def lambda_handler(event, context):
                 },
             )
             connection.commit()
-        
+
     except Exception as e:
         print("Error:", str(e))
         return {
             "statusCode": 500,
             "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
         }
-    
+
     try:
         start_rule_name = create_eventbridge_rule(
             f"StartAuction_{auction_id}",
             start_time,
             "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "IN_PROGRESS"}
+            {"auction_id": auction_id, "status": "IN_PROGRESS"},
         )
         end_rule_name = create_eventbridge_rule(
             f"EndAuction_{auction_id}",
             end_time,
             "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
-            {"auction_id": auction_id, "status": "ENDED"}
+            {"auction_id": auction_id, "status": "ENDED"},
         )
 
-        update_dynamodb_with_rules(auction_id, start_time, end_time, start_rule_name, end_rule_name)
-        
+        update_dynamodb_with_rules(
+            auction_id, start_time, end_time, start_rule_name, end_rule_name
+        )
+
         return {
             "statusCode": 201,
             "headers": {"Content-Type": "application/json"},
@@ -254,7 +256,7 @@ def lambda_handler(event, context):
         print(f"Error scheduling auction messages: {str(e)}")
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": "Failed to schedule auction messages", "details": str(e)}),
+            "body": json.dumps(
+                {"error": "Failed to schedule auction messages", "details": str(e)}
+            ),
         }
-
-    
