@@ -20,10 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const button = document.createElement("button");
       button.classList.add("bid-button");
 
-      if (!window.auctionSocket.is_active) {
-        button.disabled = true;
-      }
-
       button.innerHTML = `
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/6fa4a0e59d224dfd7dd2e280dd0a456208eb66c446f409fff1c6669a45432da6?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="" class="button-icon" />
         <span>${increment}%</span>
