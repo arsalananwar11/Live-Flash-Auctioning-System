@@ -1,5 +1,4 @@
 import json
-import base64
 import boto3
 import os
 import pymysql  # Or the database driver you're using
@@ -27,7 +26,7 @@ def lambda_handler(event, context):
     if event.get("body"):
         try:
             body = json.loads(event.get("body", "{}"))
-            print(type(event.get("body", {})))
+            # print(type(event.get("body", {})))
         except json.JSONDecodeError:
             return {
                 "statusCode": 400,
@@ -99,10 +98,10 @@ def lambda_handler(event, context):
 
         # Closing connection
         connection.close()
-        if not auctions:
-            print("No auctions found.")
-        else:
-            print(f"RDS Fetching Completed first entry of list {auctions[0]}")
+        # if not auctions:
+        #     print("No auctions found.")
+        # else:
+        #     print(f"RDS Fetching Completed first entry of list {auctions[0]}")
 
         if mode == "single_auction":
             if not auctions:
@@ -170,7 +169,7 @@ def lambda_handler(event, context):
                         #     {"file_name": s3_key.split("/")[-1], "base64": base64_image}
                         # )
 
-            print(f"Fetching Completed first entry of list")
+            print("Fetching Completed first entry of list")
             # Return the response
             return {"statusCode": 200, "body": json.dumps(auctions, default=str)}
 
