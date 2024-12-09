@@ -162,7 +162,7 @@ def lambda_handler(event, context):
                         #     {"file_name": s3_key.split("/")[-1], "base64": base64_image}
                         # )
 
-            print(f"Fetching Completed first entry of list")
+            print("Fetching Completed first entry of list")
             # Return the response
             return {"statusCode": 200, "body": json.dumps(auctions, default=str)}
 
