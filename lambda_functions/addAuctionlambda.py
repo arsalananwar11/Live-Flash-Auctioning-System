@@ -188,17 +188,14 @@ def lambda_handler(event, context):
         # Insert auction and images into the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
-            insert_query = """INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by,
-            created_on, modified_on, default_time_increment,
-            default_time_increment_before, stop_snipes_after)
-            VALUES (
+            insert_query = """
+                INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by, created_on, modified_on
+                ) VALUES (
                     %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
                     %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
-                    %(created_on)s, %(modified_on)s, %(default_time_increment)s,
-                    %(default_time_increment_before)s, %(stop_snipes_after)s
+                    %(created_on)s, %(modified_on)s
                 )
             """
-
             cursor.execute(
                 insert_query,
                 {
@@ -212,52 +209,11 @@ def lambda_handler(event, context):
                     "created_by": created_by,
                     "created_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "modified_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "default_time_increment": default_time_increment,
-                    "default_time_increment_before": default_time_increment_before,
-                    "stop_snipes_after": stop_snipes_after,
                 },
             )
             connection.commit()
 
-    except Exception as e:
-        print("Error:", str(e))
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
-        }
-
-    try:
-        start_rule_name = create_eventbridge_rule(
-            f"StartAuction_{auction_id}",
-            start_time,
-            "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "STARTED"},
-        )
-        end_rule_name = create_eventbridge_rule(
-            f"EndAuction_{auction_id}",
-            end_time,
-            "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
-            {"auction_id": auction_id, "status": "ENDED"},
-        )
-        # creationTime = start_time - timedelta(minutes=5)
-        formatted_start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S")
-        creationTime = formatted_start_time - timedelta(minutes=5)
-        resource_creation_rule_name = create_eventbridge_rule(
-            f"ResourceCreationFor_{auction_id}",
-            creationTime.strftime("%Y-%m-%dT%H:%M:%S"),
-            "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
-            {"auction_id": auction_id, "status": "CREATING"},
-        )
-
-        update_dynamodb_with_rules(
-            auction_id,
-            start_time,
-            end_time,
-            start_rule_name,
-            end_rule_name,
-            resource_creation_rule_name,
-        )
-
+        # Success response
         return {
             "statusCode": 201,
             "headers": {"Content-Type": "application/json"},
