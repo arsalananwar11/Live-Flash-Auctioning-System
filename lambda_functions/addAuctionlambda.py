@@ -112,7 +112,12 @@ def upload_to_s3(base64_data, auction_id, filename):
 
 
 def update_dynamodb_with_rules(
-    auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
+    auction_id,
+    start_time,
+    end_time,
+    start_rule_name,
+    end_rule_name,
+    resource_creation_rule_name,
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -245,7 +250,12 @@ def lambda_handler(event, context):
         )
 
         update_dynamodb_with_rules(
-            auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
+            auction_id,
+            start_time,
+            end_time,
+            start_rule_name,
+            end_rule_name,
+            resource_creation_rule_name,
         )
 
         return {
