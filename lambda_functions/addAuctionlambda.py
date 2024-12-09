@@ -18,7 +18,7 @@ S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
-    
+
     # Get query parameters
     mode = "all_auction"  # Default to 'all_auction'
     query_parameters = event.get("queryStringParameters", {})
@@ -47,7 +47,7 @@ def lambda_handler(event, context):
         body = json.loads(body)
 
     user_id = body.get("user_id")
-    if mode == "single_auction": 
+    if mode == "single_auction":
         auction_id = query_parameters.get("auction_id")
 
     if mode == "my_auction" and not user_id:
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
             "statusCode": 400,
             "body": json.dumps({"error": "Missing auction_id query parameter"}),
         }
-    
+
     try:
         # Connect to the database
         connection = pymysql.connect(
@@ -148,12 +148,11 @@ def lambda_handler(event, context):
                         presigned_url = s3_client.generate_presigned_url(
                             "get_object",
                             Params={"Bucket": S3_BUCKET_NAME, "Key": s3_key},
-                            ExpiresIn=3600  # 1 hour, adjust as needed
+                            ExpiresIn=3600,  # 1 hour, adjust as needed
                         )
-                        auction["images"].append({
-                            "file_name": s3_key.split("/")[-1],
-                            "url": presigned_url
-                        })
+                        auction["images"].append(
+                            {"file_name": s3_key.split("/")[-1], "url": presigned_url}
+                        )
                         # Fetch image and convert to base64
                         # image_data = s3_client.get_object(
                         #     Bucket=S3_BUCKET_NAME, Key=s3_key
@@ -162,7 +161,7 @@ def lambda_handler(event, context):
                         # auction["images"].append(
                         #     {"file_name": s3_key.split("/")[-1], "base64": base64_image}
                         # )
-            
+
             print(f"Fetching Completed first entry of list")
             # Return the response
             return {"statusCode": 200, "body": json.dumps(auctions, default=str)}
