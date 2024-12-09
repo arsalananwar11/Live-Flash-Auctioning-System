@@ -92,9 +92,14 @@ function renderAuctionData(auctions) {
       }
 
       // Safely access images
-      const imageUrl = auction.images && auction.images.length > 0 && auction.images[0].base64
-          ? `data:image/jpeg;base64,${auction.images[0].base64}`
+      // const imageUrl = auction.images && auction.images.length > 0 && auction.images[0].base64
+      //     ? `data:image/jpeg;base64,${auction.images[0].base64}`
+      //     : 'https://via.placeholder.com/150'; // Fallback image
+
+      const imageUrl = (auction.images && auction.images.length > 0 && auction.images[0].url)
+          ? auction.images[0].url
           : 'https://via.placeholder.com/150'; // Fallback image
+
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
