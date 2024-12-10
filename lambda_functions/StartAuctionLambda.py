@@ -97,26 +97,28 @@ def lambda_handler(event, context):
             print(f"Auction {auction_id} not found in DynamoDB.")
             return {"statusCode": 404, "body": "Auction not found"}
 
-        # auction_connection_id = auction_item.get("auction_connection_id")
+        auction_connection_id = auction_item.get("auction_connection_id")
 
-        # if not auction_connection_id:
-        #     print(f"No connection ID for auction {auction_id}. Skipping WebSocket notification.")
-        # else:
-        #     message = {
-        #         "action": "auction_update",
-        #         "auction_id": auction_id,
-        #         "status": "IN_PROGRESS",
-        #         "message": "Auction has started."
-        #     }
-        #     # Send WebSocket notification
-        #     send_websocket_message(auction_connection_id, message)
-
-        # Update DynamoDB auction status
         auction_table.update_item(
             Key={"auction_id": auction_id},
             UpdateExpression="SET auction_status = :status",
-            ExpressionAttributeValues={":status": "IN_PROGRESS"},
+            ExpressionAttributeValues={":status": "STARTED"},
         )
+
+        if not auction_connection_id:
+            print(
+                f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
+            )
+        else:
+            message = {
+                "action": "auction_update",
+                "auction_id": auction_id,
+                "status": "STARTED",
+                "message": "Auction has started.",
+            }
+            # Send WebSocket notification
+            send_websocket_message(auction_connection_id, message)
+
         print(f"Auction {auction_id} status updated to IN_PROGRESS in DynamoDB.")
 
         # Update RDS auction status
@@ -131,10 +133,9 @@ def lambda_handler(event, context):
                 {"message": f"Auction {auction_id} started successfully."}
             ),
         }
-
     except Exception as e:
-        print(f"Error processing auction start: {str(e)}")
+        print("Error starting auction:", str(e))
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
+            "body": json.dumps({"error": "Failed to start the auction."}),
         }
