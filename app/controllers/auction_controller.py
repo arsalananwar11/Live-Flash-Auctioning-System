@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil import tz
 import traceback
 from flask import Blueprint, redirect, render_template, jsonify, request, url_for
 from app.services.main_service import MainService
@@ -58,34 +59,49 @@ def auction_details(auction_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @auction_controller.route("/auctions/edit/<string:auction_id>", methods=["POST"])
 def submit_edit(auction_id):
     print(f"Received PATCH request for auction_id: {auction_id}")
     datetime_format = "%Y-%m-%d %H:%M"
     try:
+        user_timezone_str = request.form.get("timezone", "UTC")
+        user_tz = tz.gettz(user_timezone_str)
+
         start_date = request.form.get("start_date")
         start_time = request.form.get("start_time")
         if not start_date or not start_time:
             raise ValueError("Start date and time are required")
 
         start_datetime = f"{start_date} {start_time}"
+        dt_start_naive = datetime.strptime(start_datetime_local_str, datetime_format)
+        dt_start_local = dt_start_naive.replace(tzinfo=user_tz)
+
         end_date = request.form.get("end_date")
         end_time = request.form.get("end_time")
         if not end_date or not end_time:
             raise ValueError("End date and time are required")
 
         end_datetime = f"{end_date} {end_time}"
+        dt_end_naive = datetime.strptime(end_datetime_local_str, datetime_format)
+        dt_end_local = dt_end_naive.replace(tzinfo=user_tz)
+
         image_file = request.files.getlist("images")
-        print(f"Received images: {image_file}")
 
         auction_data = {
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(start_datetime, datetime_format).isoformat(),
+            "start_time": datetime.strptime(
+                start_datetime, datetime_format
+            ).isoformat(),
             "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
-            "default_time_increment": int(request.form.get("default_time_increment", 5)),
-            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
             "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
             "images": image_file,
         }
@@ -97,7 +113,9 @@ def submit_edit(auction_id):
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
         else:
             return (
-                jsonify({"error": "Failed to update auction", "details": response.json()}),
+                jsonify(
+                    {"error": "Failed to update auction", "details": response.json()}
+                ),
                 response.status_code,
             )
 
@@ -105,6 +123,7 @@ def submit_edit(auction_id):
         print("Exception occurred:", e)
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 @auction_controller.route("/auctions/edit/<string:auction_id>", methods=["GET"])
 def edit_auction(auction_id):
@@ -236,29 +255,38 @@ def get_auctions():
 def create_auction():
     datetime_format = "%Y-%m-%d %H:%M"
     try:
+        user_timezone_str = request.form.get("timezone", "UTC")
+        user_tz = tz.gettz(user_timezone_str)
+
         start_date = request.form.get("start_date")
         start_time = request.form.get("start_time")
-        if not start_date or not start_time:
-            raise ValueError("Start date and time are required")
-
         start_datetime = f"{start_date} {start_time}"
+        dt_start_naive = datetime.strptime(start_datetime, datetime_format)
+        dt_start_local = dt_start_naive.replace(tzinfo=user_tz)
+        dt_start_utc = dt_start_local.astimezone(tz.UTC)
+
         end_date = request.form.get("end_date")
         end_time = request.form.get("end_time")
-        if not end_date or not end_time:
-            raise ValueError("End date and time are required")
-
         end_datetime = f"{end_date} {end_time}"
+        dt_end_naive = datetime.strptime(end_datetime, datetime_format)
+        dt_end_local = dt_end_naive.replace(tzinfo=user_tz)
+        dt_end_utc = dt_end_local.astimezone(tz.UTC)
+
         image_file = request.files.getlist("images")
-        print(f"Received images: {image_file}")
+        print(f"dt_start_local: {dt_start_local}, and dt_start_utc: {dt_start_utc}")
 
         auction_data = {
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(start_datetime, datetime_format).isoformat(),
-            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
-            "default_time_increment": int(request.form.get("default_time_increment", 5)),
-            "default_time_increment_before": int(request.form.get("default_time_increment_before", 5)),
+            "start_time": dt_start_utc.isoformat(),
+            "end_time": dt_end_utc.isoformat(),
+            "default_time_increment": int(
+                request.form.get("default_time_increment", 5)
+            ),
+            "default_time_increment_before": int(
+                request.form.get("default_time_increment_before", 5)
+            ),
             "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
             "images": image_file,
         }
@@ -269,7 +297,9 @@ def create_auction():
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
         else:
             return (
-                jsonify({"error": "Failed to create auction", "details": response.json()}),
+                jsonify(
+                    {"error": "Failed to create auction", "details": response.json()}
+                ),
                 response.status_code,
             )
 

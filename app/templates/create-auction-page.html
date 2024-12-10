@@ -1,7 +1,11 @@
-{% extends "shared/main.html" %}
-
-{% block page_body %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/create-auction-page.css') }}">
+{% extends "shared/main.html" %} {% block page_body %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/create-auction-page.css') }}"
+/>
+<script>
+    document.getElementById('user-timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+</script>
 <section class="auction-form">
     <main class="main-content">
         <div class="section-header">
@@ -45,6 +49,7 @@
                     value="{{ auction.base_price if auction else '' }}" />
 
                 <div class="date-time-container">
+                    <input type="hidden" name="timezone" id="user-timezone">
                     <div>
                         <label for="start-date" class="form-label">Start Date</label>
                         <input 
