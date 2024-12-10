@@ -257,7 +257,12 @@ def lambda_handler(event, context):
         )
 
         update_dynamodb_with_rules(
-            auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
+            auction_id,
+            start_time,
+            end_time,
+            start_rule_name,
+            end_rule_name,
+            resource_creation_rule_name,
         )
 
         return {
