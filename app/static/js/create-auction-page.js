@@ -34,6 +34,7 @@ $(document).ready(function () {
                         error: function (xhr) {
                             console.error("Error:", xhr.responseText);
                             alert("Failed to create auction.");
+                            $(".create-button").prop("enable", true).text("Try Again");
                         },
                     });
                 })

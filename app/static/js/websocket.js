@@ -1,6 +1,10 @@
 const remainingTimeElement = document.getElementById("remaining-time");
 const errorMessageElement = document.getElementById("error-message");
-const bidButtonsDiv = document.querySelector('.bid-buttons-container');
+const bidButtonsDiv = document.querySelector(".bid-buttons-container");
+const highlightsSectionDiv = document.getElementById(
+  "highlight-section-container"
+);
+const auctionStatusDiv = document.getElementById("auction-status-highlight");
 
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId, userName) {
@@ -27,7 +31,6 @@ export class AuctionWebSocket {
       });
     };
 
-
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log("Message received from server:", message);
@@ -43,7 +46,7 @@ export class AuctionWebSocket {
         const remainingTime = message.remaining_time;
         // Update UI
         remainingTimeElement.textContent = remainingTime;
-        if(remainingTime != "Auction has ended"){
+        if (remainingTime != "Auction has ended") {
           // Parse the remaining time into seconds for countdown logic
           const timeParts = remainingTime.split(":");
           const hours = parseInt(timeParts[0], 10);
@@ -56,13 +59,36 @@ export class AuctionWebSocket {
         }
       }
 
-      
-      if(message.auction_status == "in_progress"){
-        if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
-          bidButtonsDiv.style.display = 'block';
+      if (message.auction_status == "STARTED") {
+        if (
+          bidButtonsDiv.style.display === "none" ||
+          bidButtonsDiv.style.display === ""
+        ) {
+          bidButtonsDiv.style.display = "block";
         }
-      } else if (message.auction_status == "about_to_start" || message.auction_status == "ended") {
-        bidButtonsDiv.style.display = 'none';
+        if (
+          highlightsSectionDiv.style.display === "none" ||
+          highlightsSectionDiv.style.display === ""
+        ) {
+          highlightsSectionDiv.style.display = "block";
+        }
+        auctionStatusDiv.style.display = "none";
+      } else if (message.auction_status == "CREATING") {
+        bidButtonsDiv.style.display = "none";
+        auctionStatusDiv.style.display = "block";
+        const spanElement = document.querySelector(
+          "#auction-status-highlight .highlight span"
+        );
+        spanElement.textContent = "Auction is about to begin in <5 mins!";
+        highlightsSectionDiv.style.display = "none";
+      } else if (message.auction_status == "ENDED") {
+        bidButtonsDiv.style.display = "none";
+        highlightsSectionDiv.style.display = "none";
+        auctionStatusDiv.style.display = "block";
+        const spanElement = document.querySelector(
+          "#auction-status-highlight .highlight span"
+        );
+        spanElement.textContent = "Auction has ended!";
       }
 
       if (message.type === "leaderboardUpdate") {
@@ -92,7 +118,7 @@ export class AuctionWebSocket {
   }
 
   updateLeaderboard(leaderboard) {
-    const tableBody = document.querySelector(".leaderboard-table tbody");
+    const tableBody = document.querySelector(".leaderboard tbody");
     tableBody.innerHTML = ""; // Clear current leaderboard
 
     console.log("Leaderboard updated:", leaderboard);
@@ -114,27 +140,25 @@ export class AuctionWebSocket {
       document.querySelectorAll(".bid-button").forEach((button) => {
         button.disabled = true;
       });
-    }
-    else {
+    } else {
       // enable all buttons
       document.querySelectorAll(".bid-button").forEach((button) => {
         button.disabled = false;
       });
     }
-      
-    document.querySelector(".bid-frame span:last-child").textContent = `${leaderboard[0]['bid_amount']}`;
+
+    document.getElementById(
+      "top-bid"
+    ).textContent = `${leaderboard[0]["bid_amount"]}`;
 
     leaderboard.forEach((entry, index) => {
       const row = document.createElement("tr");
-      row.classList.add("table-row");
 
       row.innerHTML = `
-        <td class="table-cell"><div class="cell-content">${index + 1}</div></td>
-        <td class="table-cell"><div class="cell-content">${entry.user_name}</div></td>
-        <td class="table-cell"><div class="cell-content">$${entry.bid_amount}</div></td>
-        <td class="table-cell"><div class="cell-content">${new Date(
-          entry.timestamp * 1000
-        ).toLocaleString()}</div></td>
+        <td>${index + 1}</td>
+        <td>${entry.user_name}</td>
+        <td>$${entry.bid_amount}</td>
+        <td>${new Date(entry.timestamp * 1000).toLocaleString()}</td>
       `;
       tableBody.appendChild(row);
     });
@@ -151,7 +175,9 @@ export class AuctionWebSocket {
           connection_id: this.connectionId,
         });
       } else {
-        console.error("Connection ID is not available. Cannot send disconnect message.");
+        console.error(
+          "Connection ID is not available. Cannot send disconnect message."
+        );
       }
     }
 
@@ -169,20 +195,24 @@ export class AuctionWebSocket {
 // Countdown logic to update time every second
 function startCountdown(totalSeconds) {
   const interval = setInterval(() => {
-      if (totalSeconds <= 0) {
-          clearInterval(interval);
-          remainingTimeElement.textContent = "Time is up!";
-          return;
-      }
+    if (totalSeconds <= 0) {
+      clearInterval(interval);
+      remainingTimeElement.textContent = "Time is up!";
+      return;
+    }
 
-      totalSeconds--;
+    totalSeconds--;
 
-      // Calculate hours, minutes, and seconds
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
+    // Calculate hours, minutes, and seconds
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
 
-      // Update UI
-      remainingTimeElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // Update UI
+    remainingTimeElement.textContent = `${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
   }, 1000);
 }
