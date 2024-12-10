@@ -32,7 +32,9 @@ def convert_to_cron(timestamp):
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
     except ValueError as e:
-        raise ValueError(f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format.") from e
+        raise ValueError(
+            f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format."
+        ) from e
 
 
 def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
@@ -108,7 +110,12 @@ def upload_to_s3(base64_data, auction_id, filename):
 
 
 def update_dynamodb_with_rules(
-    auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
+    auction_id,
+    start_time,
+    end_time,
+    start_rule_name,
+    end_rule_name,
+    resource_creation_rule_name,
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -251,11 +258,11 @@ def lambda_handler(event, context):
             resource_creation_rule_name,
         )
 
-        message = {
-            "action": "auction_update",
-            "auction_id": auction_id,
-            "status": "NEW_AUCTION_ADDED",
-        }
+        # message = {
+        #     "action": "auction_update",
+        #     "auction_id": auction_id,
+        #     "status": "NEW_AUCTION_ADDED",
+        # }
 
         return {
             "statusCode": 201,
