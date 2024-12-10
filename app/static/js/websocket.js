@@ -1,7 +1,8 @@
 const remainingTimeElement = document.getElementById("remaining-time");
 const errorMessageElement = document.getElementById("error-message");
 const bidButtonsDiv = document.querySelector('.bid-buttons-container');
-const highlightsSectionDiv = document.querySelector('.highlight-section-container');
+const highlightsSectionDiv = document.getElementById('highlight-section-container');
+const auctionStatusDiv = document.getElementById('auction-status-highlight');
 
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId, userName) {
@@ -65,9 +66,19 @@ export class AuctionWebSocket {
         if (highlightsSectionDiv.style.display === 'none' || highlightsSectionDiv.style.display === '') {
           highlightsSectionDiv.style.display = 'block';
         }
-      } else if (message.auction_status == "SCHEDULED" || message.auction_status == "ENDED") {
+        auctionStatusDiv.style.display = 'none';
+      } else if (message.auction_status == "CREATING"){
+        bidButtonsDiv.style.display = 'none';
+        auctionStatusDiv.style.display = 'block';
+        const spanElement = document.querySelector('#auction-status-highlight .highlight span');
+        spanElement.textContent = "Auction is about to begin in <5 mins!";
+        highlightsSectionDiv.style.display = 'none';
+      } else if (message.auction_status == "ENDED") {
         bidButtonsDiv.style.display = 'none';
         highlightsSectionDiv.style.display = 'none';
+        auctionStatusDiv.style.display = 'block';
+        const spanElement = document.querySelector('#auction-status-highlight .highlight span');
+        spanElement.textContent = "Auction has ended!";
       }
 
       if (message.type === "leaderboardUpdate") {

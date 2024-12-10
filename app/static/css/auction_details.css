@@ -162,3 +162,8 @@
     cursor: not-allowed;   /* Not clickable */
     opacity: 0.6;          /* Slight transparency */
 }
+
+.auction-status-highlight span {
+    font-weight: bold;
+    color: red;
+}
