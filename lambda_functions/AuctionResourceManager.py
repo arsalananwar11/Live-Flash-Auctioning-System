@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 # Initialize AWS clients
 sqs = boto3.client("sqs")
 lambda_client = boto3.client("lambda")
-eventbridge = boto3.client("events")
+eventbridge_client = boto3.client("events")
 dynamodb = boto3.resource("dynamodb")
 
 # Environment variable for the process priority Lambda
@@ -118,19 +118,35 @@ def update_auction_status(auction_id, new_status):
     table = dynamodb.Table(DYNAMODB_TABLE_NAME)
     print("Table:", table)
     try:
-        print("Hello in try")
         response = table.update_item(
             Key={"auction_id": auction_id},
             UpdateExpression="SET auction_status = :status",
             ExpressionAttributeValues={":status": new_status},
             ReturnValues="UPDATED_NEW",
         )
-        print("Hello after response")
         print(f"Auction {auction_id} status updated to {new_status}.")
         return response
     except ClientError as e:
         print(f"Error updating auction status: {e.response['Error']['Message']}")
         raise e
+
+
+def delete_eventbridge_rule(rule_name):
+    try:
+        targets_response = eventbridge_client.list_targets_by_rule(Rule=rule_name)
+        target_ids = [target["Id"] for target in targets_response.get("Targets", [])]
+
+        if target_ids:
+            eventbridge_client.remove_targets(Rule=rule_name, Ids=target_ids)
+            print(f"Removed targets from rule: {rule_name}")
+
+        eventbridge_client.delete_rule(Name=rule_name)
+        print(f"Deleted rule: {rule_name}")
+    except eventbridge_client.exceptions.ResourceNotFoundException:
+        print(f"Rule {rule_name} not found. Nothing to delete.")
+    except Exception as e:
+        print(f"Error deleting rule {rule_name}: {str(e)}")
+        raise
 
 
 def lambda_handler(event, context):
@@ -163,6 +179,9 @@ def lambda_handler(event, context):
 
             # Attach priority queue to Lambda
             attach_queue_to_lambda(priority_queue_url)
+
+            # Delete EventBridge rule for starting the auction
+            delete_eventbridge_rule(f"ResourceCreationFor_{auction_id}")
 
             return {
                 "statusCode": 200,
