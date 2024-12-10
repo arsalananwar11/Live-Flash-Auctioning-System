@@ -53,11 +53,10 @@
         {% if not auction.is_active %}
             <div class="time-frame">
                 {{ start_time.strftime('%H:%M:%S') if start_time else 'TBD' }}
+                <div class="time-frame" id="remaining-time">Loading...</div>
             </div>
         {% else %}
-            <div class="time-frame">
-                <span>00:00:00</span>
-            </div>
+            <div class="time-frame" id="remaining-time">Loading...</div>
         {% endif %}
         <div class="bid-frame">
             <span>$</span>
@@ -89,11 +88,11 @@
         </table>
     </div>
     
-    {% if auction.is_active %}
+    <div class="bid-buttons-container">
         <div class="bid-buttons">
             <!-- Bid buttons or forms can be added here -->
         </div>
-    {% endif %}
+    </div>
 </main>
 
 <script type="module">
@@ -102,10 +101,11 @@
   // Data passed from the backend
   const websocketUrl = "{{ websocket_url }}";
   const userId = "{{ user_id }}";
+  const userName = "{{ current_user.name }}";
   const auctionId = "{{ auction_id }}";
 
   console.log("Initializing WebSocket...");
-  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId);
+  const auctionSocket = new AuctionWebSocket(websocketUrl, auctionId, userId, userName);
   auctionSocket.connect();
 
   // Expose the auctionSocket for further interactions (like bid placement)

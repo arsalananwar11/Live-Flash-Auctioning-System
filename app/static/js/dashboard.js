@@ -18,7 +18,6 @@ let loggedInUserId = null; // Global variable to store the logged-in user ID
 }
 
 $(document).ready(function () {
-
     $('.tabs-group .tab-default, .tabs-group .tab-selected').on('click', function () {
         // Remove selected state from all tabs
         $('.tabs-group .tab-default, .tabs-group .tab-selected').each(function () {
@@ -101,9 +100,14 @@ function renderAuctionData(auctions) {
       }
 
       // Safely access images
-      const imageUrl = auction.images && auction.images.length > 0 && auction.images[0].base64
-          ? `data:image/jpeg;base64,${auction.images[0].base64}`
+      // const imageUrl = auction.images && auction.images.length > 0 && auction.images[0].base64
+      //     ? `data:image/jpeg;base64,${auction.images[0].base64}`
+      //     : 'https://via.placeholder.com/150'; // Fallback image
+
+      const imageUrl = (auction.images && auction.images.length > 0 && auction.images[0].url)
+          ? auction.images[0].url
           : 'https://via.placeholder.com/150'; // Fallback image
+
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
@@ -186,8 +190,6 @@ function loadAuctionData(tabTitle) {
 }
 
 function connectToWebSocket(auctionID) {
-  //Hardcoded user id
-  // const userID = "user123";
 
   if (!loggedInUserId) {
     console.error("User ID is not available. Unable to connect to WebSocket.");
@@ -199,7 +201,7 @@ function connectToWebSocket(auctionID) {
     .then((response) => response.json())
     .then((data) => {
       const websocketUrl = data.websocket_url;
-
+      
       // Establish WebSocket connection with auction_id as query parameter
       const socket = new WebSocket(
         `${websocketUrl}?auction_id=${auctionID}&user_id=${loggedInUserId}`

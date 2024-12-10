@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.auctionSocket.sendMessage("placeBid", {
           auction_id: window.auctionSocket.auctionId,
           user_id: window.auctionSocket.userId,
+          user_name: window.auctionSocket.userName,
           bid_amount: parseFloat(newBid),
         });
       } else {
@@ -18,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     increments.forEach((increment) => {
       const button = document.createElement("button");
       button.classList.add("bid-button");
+
       button.innerHTML = `
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/6fa4a0e59d224dfd7dd2e280dd0a456208eb66c446f409fff1c6669a45432da6?placeholderIfAbsent=true&apiKey=ef34feccb14a4349a0b21d81082028c5" alt="" class="button-icon" />
         <span>${increment}%</span>
@@ -27,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const newBid = (
           Number(currentBid.replace(/[^\d.-]/g, "")) * (1 + increment / 100)
         ).toFixed(2);
-        document.querySelector(".bid-frame span:last-child").textContent = `$${newBid}`;
+        // document.querySelector(".bid-frame span:last-child").textContent = `$${newBid}`;
   
         // Send the new bid through WebSocket
         placeBid(newBid);
@@ -66,4 +68,3 @@ document.addEventListener("DOMContentLoaded", function () {
     //   }
     // });
   });
-  

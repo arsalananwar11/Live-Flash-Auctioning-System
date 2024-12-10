@@ -7,7 +7,13 @@ from datetime import datetime, timedelta, timezone
 from dateutil import parser
 import pymysql
 
+
 s3_client = boto3.client("s3")
+eventbridge_client = boto3.client("events")
+lambda_client = boto3.client("lambda")
+
+dynamodb = boto3.resource("dynamodb")
+auction_table = dynamodb.Table("auction-connections")
 eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 

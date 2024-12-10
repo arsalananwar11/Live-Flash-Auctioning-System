@@ -1,9 +1,16 @@
+const remainingTimeElement = document.getElementById("remaining-time");
+const errorMessageElement = document.getElementById("error-message");
+const bidButtonsDiv = document.querySelector('.bid-buttons-container');
+
 export class AuctionWebSocket {
-  constructor(websocketUrl, auctionId, userId) {
+  constructor(websocketUrl, auctionId, userId, userName) {
     this.websocketUrl = websocketUrl;
     this.auctionId = auctionId;
     this.userId = userId;
+    this.userName = userName;
     this.socket = null;
+    this.topBid = 0;
+    this.topBidUser = "";
     this.connectionId = null; // Store the connection ID received from the server
   }
 
@@ -30,6 +37,32 @@ export class AuctionWebSocket {
         // Store the connection ID from the server
         this.connectionId = message.connectionId;
         console.log(`Connection ID set: ${this.connectionId}`);
+      }
+
+      if (message.remaining_time) {
+        const remainingTime = message.remaining_time;
+        // Update UI
+        remainingTimeElement.textContent = remainingTime;
+        if(remainingTime != "Auction has ended"){
+          // Parse the remaining time into seconds for countdown logic
+          const timeParts = remainingTime.split(":");
+          const hours = parseInt(timeParts[0], 10);
+          const minutes = parseInt(timeParts[1], 10);
+          const seconds = parseInt(timeParts[2], 10);
+          let totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+          // Start countdown
+          startCountdown(totalSeconds);
+        }
+      }
+
+      
+      if(message.auction_status == "in_progress"){
+        if (bidButtonsDiv.style.display === 'none' || bidButtonsDiv.style.display === '') {
+          bidButtonsDiv.style.display = 'block';
+        }
+      } else if (message.auction_status == "about_to_start" || message.auction_status == "ended") {
+        bidButtonsDiv.style.display = 'none';
       }
 
       if (message.type === "leaderboardUpdate") {
@@ -62,20 +95,52 @@ export class AuctionWebSocket {
     const tableBody = document.querySelector(".leaderboard-table tbody");
     tableBody.innerHTML = ""; // Clear current leaderboard
 
+    console.log("Leaderboard updated:", leaderboard);
+
+    if (leaderboard.length === 0) {
+      const row = document.createElement("tr");
+      row.classList.add("no-bids-row");
+      row.innerHTML = `
+        <td colspan="4" class="no-bids-message">
+          <div class="cell-content">No bids placed yet</div>
+        </td>
+      `;
+      tableBody.appendChild(row);
+      return;
+    }
+
+    if (this.userId === leaderboard[0].user_id) {
+      // disable all buttons
+      document.querySelectorAll(".bid-button").forEach((button) => {
+        button.disabled = true;
+      });
+    }
+    else {
+      // enable all buttons
+      document.querySelectorAll(".bid-button").forEach((button) => {
+        button.disabled = false;
+      });
+    }
+      
+    document.querySelector(".bid-frame span:last-child").textContent = `${leaderboard[0]['bid_amount']}`;
+
     leaderboard.forEach((entry, index) => {
       const row = document.createElement("tr");
       row.classList.add("table-row");
 
       row.innerHTML = `
         <td class="table-cell"><div class="cell-content">${index + 1}</div></td>
-        <td class="table-cell"><div class="cell-content">${entry.username}</div></td>
+        <td class="table-cell"><div class="cell-content">${entry.user_name}</div></td>
         <td class="table-cell"><div class="cell-content">$${entry.bid_amount}</div></td>
         <td class="table-cell"><div class="cell-content">${new Date(
           entry.timestamp * 1000
-        ).toLocaleTimeString()}</div></td>
+        ).toLocaleString()}</div></td>
       `;
       tableBody.appendChild(row);
     });
+
+    this.topBid = leaderboard[0].bid_amount;
+    this.topBidUser = leaderboard[0].user_id;
   }
 
   disconnectAndSendMessage() {
@@ -84,8 +149,6 @@ export class AuctionWebSocket {
         // Send the disconnect message with the connection ID
         this.sendMessage("disconnect", {
           connection_id: this.connectionId,
-          user_id: this.userId,
-          auction_id: this.auctionId,
         });
       } else {
         console.error("Connection ID is not available. Cannot send disconnect message.");
@@ -101,4 +164,25 @@ export class AuctionWebSocket {
       console.log("WebSocket disconnected.");
     }
   }
+}
+
+// Countdown logic to update time every second
+function startCountdown(totalSeconds) {
+  const interval = setInterval(() => {
+      if (totalSeconds <= 0) {
+          clearInterval(interval);
+          remainingTimeElement.textContent = "Time is up!";
+          return;
+      }
+
+      totalSeconds--;
+
+      // Calculate hours, minutes, and seconds
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      // Update UI
+      remainingTimeElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, 1000);
 }
