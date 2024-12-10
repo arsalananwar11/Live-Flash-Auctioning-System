@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil import tz
 import traceback
-from flask import Blueprint, redirect, render_template, jsonify, request, url_for
+from flask import Blueprint, render_template, jsonify, request
 from app.services.main_service import MainService
 from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
@@ -70,32 +70,27 @@ def submit_edit(auction_id):
 
         start_date = request.form.get("start_date")
         start_time = request.form.get("start_time")
-        if not start_date or not start_time:
-            raise ValueError("Start date and time are required")
-
         start_datetime = f"{start_date} {start_time}"
-        dt_start_naive = datetime.strptime(start_datetime_local_str, datetime_format)
+        dt_start_naive = datetime.strptime(start_datetime, datetime_format)
         dt_start_local = dt_start_naive.replace(tzinfo=user_tz)
+        dt_start_utc = dt_start_local.astimezone(tz.UTC)
 
         end_date = request.form.get("end_date")
         end_time = request.form.get("end_time")
-        if not end_date or not end_time:
-            raise ValueError("End date and time are required")
-
         end_datetime = f"{end_date} {end_time}"
-        dt_end_naive = datetime.strptime(end_datetime_local_str, datetime_format)
+        dt_end_naive = datetime.strptime(end_datetime, datetime_format)
         dt_end_local = dt_end_naive.replace(tzinfo=user_tz)
+        dt_end_utc = dt_end_local.astimezone(tz.UTC)
 
         image_file = request.files.getlist("images")
+        print(f"dt_start_local: {dt_start_local}, and dt_start_utc: {dt_start_utc}")
 
         auction_data = {
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(
-                start_datetime, datetime_format
-            ).isoformat(),
-            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
+            "start_time": dt_start_utc.isoformat(),
+            "end_time": dt_end_utc.isoformat(),
             "default_time_increment": int(
                 request.form.get("default_time_increment", 5)
             ),
@@ -106,15 +101,14 @@ def submit_edit(auction_id):
             "images": image_file,
         }
 
-        print(f"Received auction data now calling edit_auction")
-        response = AuctionService().edit_auction(auction_id, auction_data)
-        if response.get("status_code") == 200:
-            return jsonify({"message": "Auction updated successfully!"}), 200
+        response = AuctionService().create_auction(auction_data)
+        if response.get("status_code") == 201:
+            return jsonify({"message": "Auction Updated successfully!"}), 200
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
         else:
             return (
                 jsonify(
-                    {"error": "Failed to update auction", "details": response.json()}
+                    {"error": "Failed to create auction", "details": response.json()}
                 ),
                 response.status_code,
             )
@@ -174,110 +168,38 @@ def edit_auction(auction_id):
         return jsonify({"error": str(e)}), 500
 
 
-@auction_controller.route("/auctions/edit/<string:auction_id>", methods=["POST"])
-def submit_edit(auction_id):
-    print(f"Received PATCH request for auction_id: {auction_id}")
-    datetime_format = "%Y-%m-%d %H:%M"
-    try:
-        start_date = request.form.get("start_date")
-        start_time = request.form.get("start_time")
-        if not start_date or not start_time:
-            raise ValueError("Start date and time are required")
+# def auction_details(auction_id):
+#     # target_auction = AuctionService().get_auction(auction_id)
 
-        start_datetime = f"{start_date} {start_time}"
-        end_date = request.form.get("end_date")
-        end_time = request.form.get("end_time")
-        if not end_date or not end_time:
-            raise ValueError("End date and time are required")
+#     # if target_auction is None:
+#     #     return "Auction not found", 404
 
-        end_datetime = f"{end_date} {end_time}"
-        image_file = request.files.getlist("images")
-        print(f"Received images: {image_file}")
+#     # return render_template("auction_details.html", auction=target_auction)
+#     try:
+#         # Fetch the target auction
+#         target_auction = AuctionService().get_target_auction(auction_id)
 
-        auction_data = {
-            "auction_item": request.form.get("auction_item"),
-            "auction_desc": request.form.get("auction_desc"),
-            "base_price": float(request.form.get("base_price")),
-            "start_time": datetime.strptime(
-                start_datetime, datetime_format
-            ).isoformat(),
-            "end_time": datetime.strptime(end_datetime, datetime_format).isoformat(),
-            "default_time_increment": int(
-                request.form.get("default_time_increment", 5)
-            ),
-            "default_time_increment_before": int(
-                request.form.get("default_time_increment_before", 5)
-            ),
-            "stop_snipes_after": int(request.form.get("stop_snipes_after", 10)),
-            "images": image_file,
-        }
+#         if target_auction is None:
+#             return "Auction not found", 404
 
-        print("Received auction data now calling edit_auction")
-        response = AuctionService().edit_auction(auction_id, auction_data)
-        if response.get("status_code") == 200:
-            return jsonify({"message": "Auction updated successfully!"}), 200
-            # return redirect(url_for("dashboard"))  # Ensure this matches your route
-        else:
-            return (
-                jsonify(
-                    {"error": "Failed to update auction", "details": response.json()}
-                ),
-                response.status_code,
-            )
+#         # Fetch WebSocket URL from the environment
+#         websocket_url = os.getenv("WEB_SOCKET_URL")
+#         if not websocket_url:
+#             return "WebSocket URL not configured", 500
 
-    except Exception as e:
-        print("Exception occurred:", e)
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+#         # Simulate a user ID for testing purposes
+#         user_id = current_user.id
 
-
-@auction_controller.route("/auctions/edit/<string:auction_id>", methods=["GET"])
-def edit_auction(auction_id):
-    try:
-        # Fetch the target auction
-        target_auction = AuctionService().get_target_auction(auction_id)
-
-        if target_auction is None:
-            return "Auction not found", 404
-
-        # Fetch WebSocket URL from the environment
-        websocket_url = os.getenv("WEB_SOCKET_URL")
-        if not websocket_url:
-            return "WebSocket URL not configured", 500
-
-        # Simulate a user ID for testing purposes
-        user_id = current_user.id
-
-        # Convert start_time and end_time to datetime objects
-        if target_auction.get("start_time"):
-            try:
-                target_auction["start_time"] = datetime.strptime(
-                    target_auction["start_time"], "%Y-%m-%d %H:%M:%S"
-                )
-            except ValueError as e:
-                print(f"Error parsing start_time: {e}")
-                target_auction["start_time"] = None
-
-        if target_auction.get("end_time"):
-            try:
-                target_auction["end_time"] = datetime.strptime(
-                    target_auction["end_time"], "%Y-%m-%d %H:%M:%S"
-                )
-            except ValueError as e:
-                print(f"Error parsing end_time: {e}")
-                target_auction["end_time"] = None
-
-        # Pass data to the frontend
-        print(f"target_auction: {target_auction.keys()}")
-        return render_template(
-            "create-auction-page.html",
-            auction=target_auction,
-            websocket_url=websocket_url,
-            user_id=user_id,
-            auction_id=auction_id,
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+#         # Pass data to the frontend
+#         return render_template(
+#             "auction_details.html",
+#             auction=target_auction,
+#             websocket_url=websocket_url,
+#             user_id=user_id,
+#             auction_id=auction_id,
+#         )
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 
 
 @auction_controller.route("/create")
@@ -332,9 +254,6 @@ def create_auction():
 
         start_date = request.form.get("start_date")
         start_time = request.form.get("start_time")
-        if not start_date or not start_time:
-            raise ValueError("Start date and time are required")
-
         start_datetime = f"{start_date} {start_time}"
         dt_start_naive = datetime.strptime(start_datetime, datetime_format)
         dt_start_local = dt_start_naive.replace(tzinfo=user_tz)
@@ -342,9 +261,6 @@ def create_auction():
 
         end_date = request.form.get("end_date")
         end_time = request.form.get("end_time")
-        if not end_date or not end_time:
-            raise ValueError("End date and time are required")
-
         end_datetime = f"{end_date} {end_time}"
         dt_end_naive = datetime.strptime(end_datetime, datetime_format)
         dt_end_local = dt_end_naive.replace(tzinfo=user_tz)
