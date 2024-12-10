@@ -37,7 +37,6 @@ def auction_details(auction_id):
         # Simulate a user ID for testing purposes
         user_id = current_user.id
 
-        # Convert start_time to datetime object
         start_time_str = target_auction.get("start_time")
         start_time = None
         if start_time_str:
