@@ -7,15 +7,10 @@ from datetime import datetime, timedelta, timezone
 from dateutil import parser
 import pymysql
 
-
 s3_client = boto3.client("s3")
 eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 
-dynamodb = boto3.resource("dynamodb")
-auction_table = dynamodb.Table("auction-connections")
-eventbridge_client = boto3.client("events")
-lambda_client = boto3.client("lambda")
 
 dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
@@ -37,9 +32,7 @@ def convert_to_cron(timestamp):
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
     except ValueError as e:
-        raise ValueError(
-            f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format."
-        ) from e
+        raise ValueError(f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format.") from e
 
 
 def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
@@ -115,12 +108,7 @@ def upload_to_s3(base64_data, auction_id, filename):
 
 
 def update_dynamodb_with_rules(
-    auction_id,
-    start_time,
-    end_time,
-    start_rule_name,
-    end_rule_name,
-    resource_creation_rule_name,
+    auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -191,12 +179,10 @@ def lambda_handler(event, context):
         # Insert auction and images into the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
-            insert_query = """
-                INSERT INTO auction (
-                    auction_id, auction_item, auction_desc, base_price, start_time, end_time,
-                    is_active, created_by, created_on, modified_on, default_time_increment,
-                    default_time_increment_before, stop_snipes_after
-                ) VALUES (
+            insert_query = """INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by,
+            created_on, modified_on, default_time_increment,
+            default_time_increment_before, stop_snipes_after)
+            VALUES (
                     %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
                     %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
                     %(created_on)s, %(modified_on)s, %(default_time_increment)s,
@@ -236,7 +222,7 @@ def lambda_handler(event, context):
             f"StartAuction_{auction_id}",
             start_time,
             "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "IN_PROGRESS"},
+            {"auction_id": auction_id, "status": "STARTED"},
         )
 
         end_rule_name = create_eventbridge_rule(
@@ -253,7 +239,7 @@ def lambda_handler(event, context):
             f"ResourceCreationFor_{auction_id}",
             creationTime.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
-            {"auction_id": auction_id, "status": "CREATING"},
+            {"auction_id": auction_id, "status": "SCHEDULED"},
         )
 
         update_dynamodb_with_rules(
@@ -264,6 +250,12 @@ def lambda_handler(event, context):
             end_rule_name,
             resource_creation_rule_name,
         )
+
+        message = {
+            "action": "auction_update",
+            "auction_id": auction_id,
+            "status": "NEW_AUCTION_ADDED",
+        }
 
         return {
             "statusCode": 201,
