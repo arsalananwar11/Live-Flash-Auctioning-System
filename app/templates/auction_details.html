@@ -29,71 +29,90 @@
       window.history.back();
     }
 </script>
-<main class="auction-page">
-    <div class="product-info">
-        <button onclick="disconnectAndGoBack()" class="back-button">Back</button>
+<div class="auction-container">
+    <button onclick="disconnectAndGoBack()" class="back-button">Back</button>
         <a href="{{ url_for('main_controller.open_dashboard')}}" class="back-icon">
             
             <i class="fas fa-arrow-left"></i>
         </a>
-        <h2 class="auction-item">{{ auction.auction_item }}</h2>
-    </div>
-    {% if auction.images and auction.images|length >= 1 %}
-        {% for image in auction.images %}
-            <img src="data:image/jpeg;base64,{{ image.base64 }}" alt="Product image" class="product-image" />
-        {% endfor %}
-    {% endif %}
-    
-    <div class="product-details">
-        <p class="auction-desc">
-            {{ auction.auction_desc }}
-        </p>
-        <div class="time-remaining">{% if auction.is_active %}Time Remaining{% else %}Starts At{% endif %}</div>
-        <div class="top-bid">{% if auction.is_active %}Top Bid{% else %}Starting Bid{% endif %}</div>
-        {% if not auction.is_active %}
-            <div class="time-frame">
-                {{ start_time.strftime('%H:%M:%S') if start_time else 'TBD' }}
-                <div class="time-frame" id="remaining-time">Loading...</div>
+    <!-- Auction Title -->
+    <h1 class="auction-title">{{ auction.auction_item }}</h1>
+
+    <!-- Auction Details and Image Section -->
+    <div class="auction-content">
+        <!-- Auction Details -->
+        <div class="auction-details-card">
+            <div class="auction-details">
+                <p><span>Item:</span> {{ auction.auction_item }}</p>
+                <p><span>Base Price:</span> ${{ auction.base_price }}</p>
+                <p><span>Start Time:</span> {{ auction.start_time }}</p>
+                <p><span>End Time:</span> {{ auction.end_time }}</p>
+                <p><span>Increment Time:</span> {{ auction.default_time_increment }} minutes for every snipe</p>
+                <p><span>Snipe Starts:</span> {{ auction.default_time_increment_before }} minutes before initial end time</p>
+                <p><span>Description:</span> {{ auction.auction_desc }}</p>
             </div>
-        {% else %}
-            <div class="time-frame" id="remaining-time">Loading...</div>
-        {% endif %}
-        <div class="bid-frame">
-            <span>$</span>
-            <span>{% if auction.is_active %}1200{% else %}{{ auction.base_price }}{% endif %}</span>
+        </div>
+
+        <!-- Auction Image -->
+        <div class="auction-image">
+            {% if auction.images and auction.images|length >= 1 %}
+                {% for image in auction.images %}
+                    <img src="data:image/jpeg;base64,{{ image.base64 }}" alt="Product image" class="product-image" />
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
-    
-    
-
-    <div class="leaderboard-container">
-        <h3 class="leaderboard-title">Leaderboard</h3>
-        <table class="leaderboard-table">
-            <thead>
-                <tr class="table-header">
-                    <th class="table-cell"><div class="cell-content">Rank</div></th>
-                    <th class="table-cell"><div class="cell-content">Username</div></th>
-                    <th class="table-cell"><div class="cell-content">Bid</div></th>
-                    <th class="table-cell"><div class="cell-content">Time</div></th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Placeholder row for when there are no bids -->
-                <tr class="no-bids-row">
-                    <td colspan="4" class="no-bids-message">
-                        <div class="cell-content">No bids placed yet</div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- Auction Status -->
+    <div class="highlight-section auction-status-highlight" id="auction-status-highlight" style="display: none;">
+        <div class="highlight">
+            <span></span>
+        </div>
     </div>
-    
+
+    <!-- Top Bid and Remaining Time -->
+    <div class="highlight-section-container" id="highlight-section-container" style="display: none;">
+        <div class="highlight-section">
+            <div class="highlight">
+                <!-- <span>Top Bid:</span> $10,000 -->
+                <div>
+                    <span>Top Bid</span>
+                    <div id="top-bid">{{ auction.base_price }}</div>
+                </div>
+            </div>
+            <div class="highlight">
+                <span>Remaining Time</span>
+                <div id="remaining-time">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <h2 class="leaderboard-title">Leaderboard</h2>
+    <table class="leaderboard">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Bidder</th>
+                <th>Bid Amount</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="no-bids-row">
+                <td colspan="4" class="no-bids-message">
+                    <div class="cell-content">No bids placed yet</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Bid Buttons -->
     <div class="bid-buttons-container">
         <div class="bid-buttons">
             <!-- Bid buttons or forms can be added here -->
         </div>
     </div>
-</main>
+</div>
 
 <script type="module">
   import { AuctionWebSocket } from "../static/js/websocket.js";
