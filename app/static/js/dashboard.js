@@ -9,6 +9,14 @@ let loggedInUserId = null; // Global variable to store the logged-in user ID
       return $('<div>').text(text).html();
   }
 
+  function convertUTCToLocal(utcTime) {
+    const utcDate = new Date(utcTime);
+    const localDate = utcDate.toLocaleString();
+
+    console.log(`UTC Time: ${utcTime}, Local Time: ${localDate}`);
+    return localDate;
+}
+
 $(document).ready(function () {
     $('.tabs-group .tab-default, .tabs-group .tab-selected').on('click', function () {
         // Remove selected state from all tabs
@@ -116,8 +124,8 @@ function renderAuctionData(auctions) {
               </div>
               <div class="card-details">
                   <div class="card-headline">
-                  <p class="card-subtitle">Start Time: ${escapeHtml(auction.start_time)}</p>
-                  <p class="card-subtitle">End Time: ${escapeHtml(auction.end_time)}</p>
+                  <p class="card-subtitle">Start Time: ${escapeHtml(convertUTCToLocal(auction.start_time))}</p>
+                  <p class="card-subtitle">End Time: ${escapeHtml(convertUTCToLocal(auction.end_time))}</p>
                   </div>
                   <p class="card-description">${escapeHtml(auction.auction_desc)}</p>
                   <div class="card-actions">
