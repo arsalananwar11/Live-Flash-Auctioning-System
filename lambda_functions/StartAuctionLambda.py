@@ -89,21 +89,50 @@ def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
     auction_id = event["auction_id"]
 
-    # Update DynamoDB
-    auction_table.update_item(
-        Key={"auction_id": auction_id},
-        UpdateExpression="SET auction_status = :status",
-        ExpressionAttributeValues={":status": "IN_PROGRESS"},
-    )
+    try:
+        response = auction_table.get_item(Key={"auction_id": auction_id})
+        auction_item = response.get("Item")
 
-    send_websocket_message(auction_connection_id, message)
+        if not auction_item:
+            print(f"Auction {auction_id} not found in DynamoDB.")
+            return {"statusCode": 404, "body": "Auction not found"}
 
-    # Update RDS
-    connection = connect_to_rds()
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "UPDATE auction SET is_active = 1 WHERE auction_id = %s", (auction_id,)
+        # auction_connection_id = auction_item.get("auction_connection_id")
+
+        # if not auction_connection_id:
+        #     print(f"No connection ID for auction {auction_id}. Skipping WebSocket notification.")
+        # else:
+        #     message = {
+        #         "action": "auction_update",
+        #         "auction_id": auction_id,
+        #         "status": "IN_PROGRESS",
+        #         "message": "Auction has started."
+        #     }
+        #     # Send WebSocket notification
+        #     send_websocket_message(auction_connection_id, message)
+
+        # Update DynamoDB auction status
+        auction_table.update_item(
+            Key={"auction_id": auction_id},
+            UpdateExpression="SET auction_status = :status",
+            ExpressionAttributeValues={":status": "IN_PROGRESS"},
         )
-        connection.commit()
+        print(f"Auction {auction_id} status updated to IN_PROGRESS in DynamoDB.")
 
-    delete_eventbridge_rule(f"StartAuction_{auction_id}")
+        # Update RDS auction status
+        update_rds(auction_id, is_active=1)
+
+        # Delete EventBridge rule for starting the auction
+        delete_eventbridge_rule(f"StartAuction_{auction_id}")
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"message": f"Auction {auction_id} started successfully."}),
+        }
+
+    except Exception as e:
+        print(f"Error processing auction start: {str(e)}")
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
+        }

@@ -99,7 +99,7 @@ def lambda_handler(event, context):
         with connection.cursor() as cursor:
             update_query = """
                 UPDATE auction
-                SET 
+                SET
                     auction_item = %(auction_item)s,
                     auction_desc = %(auction_desc)s,
                     base_price = %(base_price)s,

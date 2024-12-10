@@ -126,7 +126,7 @@ def update_dynamodb_with_rules(
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
     """
     try:
-        response = auction_table.put_item(
+        auction_table.put_item(
             Item={
                 "auction_id": auction_id,
                 "auction_start_time": start_time,
@@ -134,6 +134,7 @@ def update_dynamodb_with_rules(
                 "auction_status": "SCHEDULED",
                 "start_rule_name": start_rule_name,
                 "end_rule_name": end_rule_name,
+                "resource_creation_rule_name": resource_creation_rule_name,
             }
         )
         print(f"DynamoDB updated for auction {auction_id} with rules.")
@@ -192,13 +193,13 @@ def lambda_handler(event, context):
         with connection.cursor() as cursor:
             insert_query = """
                 INSERT INTO auction (
-                    auction_id, auction_item, auction_desc, base_price, start_time, end_time, 
-                    is_active, created_by, created_on, modified_on, default_time_increment, 
+                    auction_id, auction_item, auction_desc, base_price, start_time, end_time,
+                    is_active, created_by, created_on, modified_on, default_time_increment,
                     default_time_increment_before, stop_snipes_after
                 ) VALUES (
-                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s, 
-                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s, 
-                    %(created_on)s, %(modified_on)s, %(default_time_increment)s, 
+                    %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
+                    %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
+                    %(created_on)s, %(modified_on)s, %(default_time_increment)s,
                     %(default_time_increment_before)s, %(stop_snipes_after)s
                 )
             """
@@ -256,7 +257,7 @@ def lambda_handler(event, context):
         )
 
         update_dynamodb_with_rules(
-            auction_id, start_time, end_time, start_rule_name, end_rule_name
+            auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name
         )
 
         return {
