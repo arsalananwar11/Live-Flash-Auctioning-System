@@ -146,6 +146,7 @@ def lambda_handler(event, context):
         # print(f"Getting Body")
         # body = json.loads(event.get("body", {}))
         body = json.loads(event.get("body", {}))
+        print("Body: ", body)
         if not body or body == {}:
             body = json.dumps(event)
 
@@ -231,6 +232,8 @@ def lambda_handler(event, context):
             "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
             {"auction_id": auction_id, "status": "STARTED"},
         )
+        print("Start Rule Over")
+        print("Before end rule")
 
         end_rule_name = create_eventbridge_rule(
             f"EndAuction_{auction_id}",
@@ -238,6 +241,7 @@ def lambda_handler(event, context):
             "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
             {"auction_id": auction_id, "status": "ENDED"},
         )
+        print("After End Rule")
 
         formatted_start_time = parser.parse(start_time).astimezone(timezone.utc)
         creationTime = formatted_start_time - timedelta(minutes=5)
@@ -258,11 +262,13 @@ def lambda_handler(event, context):
             resource_creation_rule_name,
         )
 
-        # message = {
-        #     "action": "auction_update",
-        #     "auction_id": auction_id,
-        #     "status": "NEW_AUCTION_ADDED",
-        # }
+        message = {
+            "action": "auction_update",
+            "auction_id": auction_id,
+            "status": "NEW_AUCTION_ADDED",
+        }
+        print("Message: ", message)
+        print("Auction ID: ", auction_id)
 
         return {
             "statusCode": 201,

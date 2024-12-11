@@ -252,14 +252,18 @@ def create_auction():
 
         response = AuctionService().create_auction(auction_data)
         if response.get("status_code") == 201:
-            return jsonify({"message": "Auction created successfully!"}), 200
+            # return jsonify({"message": "Auction created successfully!"}), 200
             # return redirect(url_for("dashboard"))  # Ensure this matches your route
+            # Trigger WebSocket connection for the auction
+            auction_id = response.get("data").get("auction_id")
+            websocket_url = os.getenv("WEB_SOCKET_URL")
+            print("Auction ID: ", auction_id)
+            print("Websocket connection:", websocket_url)
+            return jsonify(response), 201
         else:
             return (
-                jsonify(
-                    {"error": "Failed to create auction", "details": response.json()}
-                ),
-                response.status_code,
+                jsonify({"error": "Failed to create auction", "details": response}),
+                response.get("status_code", 500),
             )
 
     except Exception as e:

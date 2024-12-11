@@ -97,7 +97,7 @@ def lambda_handler(event, context):
             print(f"Auction {auction_id} not found in DynamoDB.")
             return {"statusCode": 404, "body": "Auction not found"}
 
-        auction_connection_id = auction_item.get("auction_connection_id")
+        auction_connection_id = auction_item.get("auction_connectionId")
 
         auction_table.update_item(
             Key={"auction_id": auction_id},
@@ -111,9 +111,8 @@ def lambda_handler(event, context):
             )
         else:
             message = {
-                "action": "auction_update",
+                "auction_status": "STARTED",
                 "auction_id": auction_id,
-                "status": "STARTED",
                 "message": "Auction has started.",
             }
             # Send WebSocket notification
