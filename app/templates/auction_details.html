@@ -43,13 +43,13 @@
         <!-- Auction Details -->
         <div class="auction-details-card">
             <div class="auction-details">
-                <p><span>Item:</span> {{ auction.auction_item }}</p>
-                <p><span>Base Price:</span> ${{ auction.base_price }}</p>
-                <p><span>Start Time:</span> {{ auction.start_time }}</p>
-                <p><span>End Time:</span> {{ auction.end_time }}</p>
-                <p><span>Increment Time:</span> {{ auction.default_time_increment }} minutes for every snipe</p>
-                <p><span>Snipe Starts:</span> {{ auction.default_time_increment_before }} minutes before initial end time</p>
-                <p><span>Description:</span> {{ auction.auction_desc }}</p>
+                <p><span class="label">Item:</span> {{ auction.auction_item }}</p>
+                <p><span class="label">Base Price:</span> ${{ auction.base_price }}</p>
+                <p><span class="label">Start Time:</span> <span id="start-time">{{ auction.start_time }}</span></p>
+                <p><span class="label">End Time:</span> <span id="end-time">{{ auction.end_time }}</span></p>
+                <p><span class="label">Increment Time:</span> {{ auction.default_time_increment }} minutes for every snipe</p>
+                <p><span class="label">Snipe Starts:</span> {{ auction.default_time_increment_before }} minutes before initial end time</p>
+                <p><span class="label">Description:</span> {{ auction.auction_desc }}</p>
             </div>
         </div>
 

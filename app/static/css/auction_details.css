@@ -54,7 +54,7 @@
     color: #555;
 }
 
-.auction-details span {
+.auction-details .label {
     font-weight: bold;
     color: #3b5998;
 }

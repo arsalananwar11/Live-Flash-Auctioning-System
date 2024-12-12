@@ -11,3 +11,4 @@ exclude=
     .tox,
     .eggs,
     *.egg,
+    cloud/
