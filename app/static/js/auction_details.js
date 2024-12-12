@@ -1,4 +1,23 @@
+function convertUTCToLocalTimeTime(utcTime) {
+  const localDate = new Date(new Date(`${utcTime}Z`).toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+  return localDate.toLocaleString(); 
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+
+    const startTimeElement = document.getElementById("start-time");
+    const endTimeElement = document.getElementById("end-time");
+
+    if (startTimeElement) {
+        const localStartTime = convertUTCToLocalTimeTime(startTimeElement.textContent.trim());
+        startTimeElement.textContent = localStartTime;
+    }
+
+    if (endTimeElement) {
+        const localEndTime = convertUTCToLocalTimeTime(endTimeElement.textContent.trim());
+        endTimeElement.textContent = localEndTime;
+    }
+
     const increments = [5, 10, 15, 20];
     const bidButtonsDiv = document.querySelector(".bid-buttons");
   

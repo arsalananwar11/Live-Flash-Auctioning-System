@@ -12,10 +12,6 @@ eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 
 
-dynamodb = boto3.resource("dynamodb")
-auction_table = dynamodb.Table("auction-connections")
-eventbridge_client = boto3.client("events")
-lambda_client = boto3.client("lambda")
 
 dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
@@ -191,12 +187,10 @@ def lambda_handler(event, context):
         # Insert auction and images into the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
-            insert_query = """
-                INSERT INTO auction (
-                    auction_id, auction_item, auction_desc, base_price, start_time, end_time,
-                    is_active, created_by, created_on, modified_on, default_time_increment,
-                    default_time_increment_before, stop_snipes_after
-                ) VALUES (
+            insert_query = """INSERT INTO auction (auction_id, auction_item, auction_desc, base_price, start_time, end_time, is_active, created_by,
+            created_on, modified_on, default_time_increment,
+            default_time_increment_before, stop_snipes_after)
+            VALUES (
                     %(auction_id)s, %(auction_item)s, %(auction_desc)s, %(base_price)s,
                     %(start_time)s, %(end_time)s, %(is_active)s, %(created_by)s,
                     %(created_on)s, %(modified_on)s, %(default_time_increment)s,
@@ -236,7 +230,7 @@ def lambda_handler(event, context):
             f"StartAuction_{auction_id}",
             start_time,
             "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "IN_PROGRESS"},
+            {"auction_id": auction_id, "status": "STARTED"},
         )
 
         end_rule_name = create_eventbridge_rule(
