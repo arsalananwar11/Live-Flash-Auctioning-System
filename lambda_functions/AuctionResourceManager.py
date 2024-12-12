@@ -240,18 +240,18 @@ def lambda_handler(event, context):
 
             send_websocket_message(auction_id, message)
 
-#             if not auction_connection_id:
-#                 print(
-#                     f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
-#                 )
-#             else:
-#                 message = {
-#                     "auction_status": "CREATING",
-#                     "auction_id": auction_id,
-#                     "message": "Auction is about to start in 5 minutes.",
-#                 }
-#                 # Send WebSocket notification
-#                 send_websocket_message(auction_connection_id, message)
+            if not auction_connection_id:
+                print(
+                    f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
+                )
+            else:
+                message = {
+                    "auction_status": "CREATING",
+                    "auction_id": auction_id,
+                    "message": "Auction is about to start in 5 minutes.",
+                }
+                # Send WebSocket notification
+                send_websocket_message(auction_connection_id, message)
 
             # Create queues
             fifo_queue_url = create_queue(fifo_queue_name, is_fifo=True)
