@@ -2,6 +2,9 @@ from datetime import datetime
 import json
 import uuid
 import boto3
+
+# import time
+# from datetime import timedelta
 from time_helper import calculate_remaining_time
 from botocore.exceptions import ClientError
 from leaderboard_helper import broadcast_leaderboard
@@ -100,11 +103,11 @@ def lambda_handler(event, context):
             print("Raw Body: ", raw_body)
             print("body:", body)
             print("in try")
-            if action == "join":
-                print("in join")
+            if action == "create":
+                print("in create")
                 auction_id = body.get("auction_id")
-                user_id = body.get("user_id")
-                print("in join 2")
+                # user_id = body.get('user_id')
+                print("in create 2")
 
                 if not auction_id or not user_id:
                     raise ValueError("Missing required fields: auction_id or user_id")
@@ -121,6 +124,7 @@ def lambda_handler(event, context):
                 )
                 print("Auction Connection ID:", auction_connection_id)
                 broadcast_leaderboard(auction_id, connection_id)
+                print("1")
                 # auction_end_time = time.time() + 15*60
                 # remaining_timedelta = timedelta(seconds=int(remaining))
                 # formatted_time = str(remaining_timedelta)
@@ -130,23 +134,22 @@ def lambda_handler(event, context):
                 remaining_time = calculate_remaining_time(auction_end_time)
                 auction_status = auction_response.get("Item", {}).get(
                     "auction_status"
-                )  # {'about_to_start', 'in_progress', 'ended'}
-                print(f"Remaining Time: {remaining_time}")
+                )  # {'SCHEDULED', 'CREATING', 'STARTED', 'ENDED'}
+                print("2")
 
                 # Create auction_connectionId if not present
                 if not auction_connection_id:
                     auction_connection_id = str(uuid.uuid4())
                     auction_table.update_item(
                         Key={"auction_id": auction_id},
-                        UpdateExpression="auction_connection_id = :id",
-                        ExpressionAttributeValues={":cid": auction_connection_id},
+                        UpdateExpression="SET auction_connectionId = :c_id",
+                        ExpressionAttributeValues={":c_id": auction_connection_id},
+                        # 'auction_connectionId': auction_connection_id,
+                        # 'auction_status': auction_status,
+                        # # 'auction_start_time': auction_start_time,
+                        # 'auction_end_time': auction_end_time,
+                        # 'remaining_time': remaining_time,
                     )
-                    # 'auction_connectionId': auction_connection_id,
-                    # 'auction_status': auction_status,
-                    # # 'auction_start_time': auction_start_time,
-                    # 'auction_end_time': auction_end_time,
-                    # 'remaining_time': remaining_time,
-
                     print(
                         f"Created auction_connectionId {auction_connection_id} for auction {auction_id}"
                     )
@@ -168,7 +171,7 @@ def lambda_handler(event, context):
                     "statusCode": 200,
                     "body": json.dumps(
                         {
-                            "message": f"Joined auction {auction_id}",
+                            "message": f"Auction {auction_id}",
                             "auction_connectionId": auction_connection_id,
                             "auction_status": auction_status,
                             # 'auction_start_time': auction_start_time,

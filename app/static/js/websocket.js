@@ -25,7 +25,7 @@ export class AuctionWebSocket {
 
     this.socket.onopen = () => {
       console.log("WebSocket connection established.");
-      this.sendMessage("join", {
+      this.sendMessage("create", {
         auction_id: this.auctionId,
         user_id: this.userId,
       });

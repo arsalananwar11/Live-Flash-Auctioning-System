@@ -190,7 +190,6 @@ function loadAuctionData(tabTitle) {
 }
 
 function connectToWebSocket(auctionID) {
-
   if (!loggedInUserId) {
     console.error("User ID is not available. Unable to connect to WebSocket.");
     return;
@@ -201,7 +200,7 @@ function connectToWebSocket(auctionID) {
     .then((response) => response.json())
     .then((data) => {
       const websocketUrl = data.websocket_url;
-      
+
       // Establish WebSocket connection with auction_id as query parameter
       const socket = new WebSocket(
         `${websocketUrl}?auction_id=${auctionID}&user_id=${loggedInUserId}`
@@ -250,15 +249,15 @@ function connectToWebSocket(auctionID) {
 }
 
 $(document).on("click", ".join-button", function () {
-    const auctionID = $(this).data("auction-id");
-    connectToWebSocket(auctionID);
-    console.log("Button Clicked");
-    console.log(`Attempting to join auction: ${auctionID}`);
-    console.log('Join auction:', auctionID);
-    window.location.href = `/auctions/${auctionID}`;
+  const auctionID = $(this).data("auction-id");
+  // connectToWebSocket(auctionID);
+  console.log("Button Clicked");
+  console.log(`Attempting to join auction: ${auctionID}`);
+  console.log("Join auction:", auctionID);
+  window.location.href = `/auctions/${auctionID}`;
 });
 
-// $(document).on("click", ".edit-button", function () { 
+// $(document).on("click", ".edit-button", function () {
 //     console.log("Edit Button Clicked");
 //     const auctionID = $(this).data("auction-id");
 //     console.log('Editting auction:', auctionID);
@@ -266,6 +265,5 @@ $(document).on("click", ".join-button", function () {
 
 // });
 // Load "All Auction" data by default on page load
-
 
 loadAuctionData("All Auction");
