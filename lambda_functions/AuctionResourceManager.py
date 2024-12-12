@@ -18,8 +18,6 @@ apigateway_management_api = boto3.client(
 PROCESS_PRIORITY_LAMBDA_NAME = os.getenv("PROCESS_PRIORITY_LAMBDA_NAME")
 
 
-
-
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 
 
