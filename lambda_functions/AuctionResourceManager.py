@@ -8,11 +8,16 @@ sqs = boto3.client("sqs")
 lambda_client = boto3.client("lambda")
 eventbridge_client = boto3.client("events")
 dynamodb = boto3.resource("dynamodb")
+auction_table = dynamodb.Table("auction-connections")
+dynamodb = boto3.resource("dynamodb")
+apigateway_management_api = boto3.client(
+    "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
+)
 
-# Environment variable for the process priority Lambda
+
 PROCESS_PRIORITY_LAMBDA_NAME = os.getenv("PROCESS_PRIORITY_LAMBDA_NAME")
 
-# Environment variables
+
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 
 
@@ -149,6 +154,17 @@ def delete_eventbridge_rule(rule_name):
         raise
 
 
+def send_websocket_message(connection_id, message):
+    try:
+        apigateway_management_api.post_to_connection(
+            ConnectionId=connection_id,
+            Data=json.dumps(message),
+        )
+        print(f"Message sent to connection: {connection_id}")
+    except Exception as e:
+        print(f"Error sending message: {e}")
+
+
 def lambda_handler(event, context):
     """
     Handle EventBridge events to create or delete auction resources.
@@ -160,18 +176,37 @@ def lambda_handler(event, context):
         print(f"auction_id {auction_id}")
         print(f"action {action}")
 
-        if not auction_id or action not in ["SCHEDULED"]:
+        response = auction_table.get_item(Key={"auction_id": auction_id})
+        auction_item = response.get("Item")
+
+        if not auction_id or action not in ["CREATING"]:
             raise ValueError(
                 "Missing or invalid 'auction_id' or 'action' in the event."
             )
+
+        auction_connection_id = auction_item.get("auction_connectionId")
+        print("Auction Connection ID: ", auction_connection_id)
 
         # Define queue names
         fifo_queue_name = f"AuctionActionsQueue-{auction_id}.fifo"
         priority_queue_name = f"AuctionPriorityQueue-{auction_id}"
 
-        if action == "SCHEDULED":
+        if action == "CREATING":
             # Update auction status to 'CREATING'
             update_auction_status(auction_id, "CREATING")
+
+            if not auction_connection_id:
+                print(
+                    f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
+                )
+            else:
+                message = {
+                    "auction_status": "CREATING",
+                    "auction_id": auction_id,
+                    "message": "Auction is about to start in 5 minutes.",
+                }
+                # Send WebSocket notification
+                send_websocket_message(auction_connection_id, message)
 
             # Create queues
             fifo_queue_url = create_queue(fifo_queue_name, is_fifo=True)
