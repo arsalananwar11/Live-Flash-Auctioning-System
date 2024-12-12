@@ -6,6 +6,7 @@ import os
 
 dynamodb = boto3.resource("dynamodb")
 eventbridge_client = boto3.client("events")
+lambda_client = boto3.client("lambda")
 auction_table = dynamodb.Table("auction-connections")
 apigateway_api = boto3.client(
     "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
@@ -63,7 +64,7 @@ def delete_eventbridge_rule(rule_name):
 
         if target_ids:
             eventbridge_client.remove_targets(Rule=rule_name, Ids=target_ids)
-            print(f"Removed targets from rule: {rule_name}")
+            print(f"Removed targets from rule: {rule_name} and its id {target_ids}")
 
         eventbridge_client.delete_rule(Name=rule_name)
         print(f"Deleted rule: {rule_name}")
@@ -100,16 +101,16 @@ def lambda_handler(event, context):
         auction_connection_id = auction_item.get("auction_connectionId")
         # auction_connection_id = auction_item.get("auction_connectionId")
 
+
         if not auction_connection_id:
-            print(
-                f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
-            )
+            print(f"No connection ID for auction {auction_id}. Skipping WebSocket notification.")
         else:
             message = {
                 "auction_id": auction_id,
                 "auction_status": "STARTED",
-                "message": "Auction has started.",
+                "message": "Auction has started."
             }
+            # Send WebSocket notification
             send_websocket_message(auction_connection_id, message)
 
         # Update DynamoDB auction status
@@ -119,7 +120,11 @@ def lambda_handler(event, context):
             ExpressionAttributeValues={":status": "STARTED"},
         )
         print(f"Auction {auction_id} status updated to STARTED in DynamoDB.")
+
+        # Update RDS auction status
         update_rds(auction_id, is_active=1)
+
+        # Delete EventBridge rule for starting the auction
         delete_eventbridge_rule(f"StartAuction_{auction_id}")
 
         return {
