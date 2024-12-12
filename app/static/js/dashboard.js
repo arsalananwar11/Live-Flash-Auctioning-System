@@ -10,11 +10,9 @@ let loggedInUserId = null; // Global variable to store the logged-in user ID
   }
 
   function convertUTCToLocal(utcTime) {
-    const utcDate = new Date(utcTime);
-    const localDate = utcDate.toLocaleString();
 
-    console.log(`UTC Time: ${utcTime}, Local Time: ${localDate}`);
-    return localDate;
+    const localDate = new Date(new Date(`${utcTime}Z`).toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+    return localDate.toLocaleString(); 
 }
 
 $(document).ready(function () {
@@ -93,7 +91,7 @@ function renderAuctionData(auctions) {
 
   $.each(auctions, function (_, auction) {
       // Validate required fields with updated field names
-      console.log('Auction:', auction);
+      console.log(`Auction starttime:, ${auction.start_time} and auction endtime: ${auction.end_time}`);
       if (!auction.auction_item || !auction.start_time || !auction.auction_desc) {
           console.warn('Incomplete auction data:', auction);
           return; // Skip this auction
@@ -108,6 +106,8 @@ function renderAuctionData(auctions) {
           ? auction.images[0].url
           : 'https://via.placeholder.com/150'; // Fallback image
 
+      const startTime = convertUTCToLocal(auction.start_time);
+      const endTime = convertUTCToLocal(auction.end_time);
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
@@ -116,7 +116,7 @@ function renderAuctionData(auctions) {
               <div class="card-content">
               <header class="card-header">
                   <div class="header-text">
-                  <h2 class="header-title">${escapeHtml(auction.auction_item)}</h2>
+                  <h2 class="header-title">${auction.auction_item}</h2>
                   </div>
               </header>
               <div class="card-media">
@@ -124,10 +124,10 @@ function renderAuctionData(auctions) {
               </div>
               <div class="card-details">
                   <div class="card-headline">
-                  <p class="card-subtitle">Start Time: ${escapeHtml(convertUTCToLocal(auction.start_time))}</p>
-                  <p class="card-subtitle">End Time: ${escapeHtml(convertUTCToLocal(auction.end_time))}</p>
+                    <p class="card-subtitle">Start Time: ${startTime}</p>
+                    <p class="card-subtitle">End Time: ${endTime}</p>
                   </div>
-                  <p class="card-description">${escapeHtml(auction.auction_desc)}</p>
+                  <p class="card-description">${auction.auction_desc}</p>
                   <div class="card-actions">
                   <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
                     <span class="action-state">Join</span>
@@ -190,7 +190,6 @@ function loadAuctionData(tabTitle) {
 }
 
 function connectToWebSocket(auctionID) {
-
   if (!loggedInUserId) {
     console.error("User ID is not available. Unable to connect to WebSocket.");
     return;
@@ -201,7 +200,7 @@ function connectToWebSocket(auctionID) {
     .then((response) => response.json())
     .then((data) => {
       const websocketUrl = data.websocket_url;
-      
+
       // Establish WebSocket connection with auction_id as query parameter
       const socket = new WebSocket(
         `${websocketUrl}?auction_id=${auctionID}&user_id=${loggedInUserId}`
@@ -250,15 +249,15 @@ function connectToWebSocket(auctionID) {
 }
 
 $(document).on("click", ".join-button", function () {
-    const auctionID = $(this).data("auction-id");
-    connectToWebSocket(auctionID);
-    console.log("Button Clicked");
-    console.log(`Attempting to join auction: ${auctionID}`);
-    console.log('Join auction:', auctionID);
-    window.location.href = `/auctions/${auctionID}`;
+  const auctionID = $(this).data("auction-id");
+  // connectToWebSocket(auctionID);
+  console.log("Button Clicked");
+  console.log(`Attempting to join auction: ${auctionID}`);
+  console.log("Join auction:", auctionID);
+  window.location.href = `/auctions/${auctionID}`;
 });
 
-// $(document).on("click", ".edit-button", function () { 
+// $(document).on("click", ".edit-button", function () {
 //     console.log("Edit Button Clicked");
 //     const auctionID = $(this).data("auction-id");
 //     console.log('Editting auction:', auctionID);
@@ -266,6 +265,5 @@ $(document).on("click", ".join-button", function () {
 
 // });
 // Load "All Auction" data by default on page load
-
 
 loadAuctionData("All Auction");
