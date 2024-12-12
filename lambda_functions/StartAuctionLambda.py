@@ -116,7 +116,7 @@ def lambda_handler(event, context):
         auction_table.update_item(
             Key={"auction_id": auction_id},
             UpdateExpression="SET auction_status = :status",
-            ExpressionAttributeValues={":status": "IN_PROGRESS"},
+            ExpressionAttributeValues={":status": "STARTED"},
         )
         print(f"Auction {auction_id} status updated to STARTED in DynamoDB.")
         update_rds(auction_id, is_active=1)
