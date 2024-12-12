@@ -32,7 +32,9 @@ def convert_to_cron(timestamp):
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
     except ValueError as e:
-        raise ValueError(f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format.") from e
+        raise ValueError(
+            f"Invalid timestamp format: {timestamp}. Expected ISO 8601 format."
+        ) from e
 
 
 def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
@@ -98,7 +100,15 @@ def upload_to_s3(base64_data, auction_id, filename):
 
 
 def update_dynamodb_with_rules(
-    auction_id, start_time, end_time, start_rule_name, end_rule_name, resource_creation_rule_name, default_time_increment, default_time_increment_before, stop_snipes_after
+    auction_id,
+    start_time,
+    end_time,
+    start_rule_name,
+    end_rule_name,
+    resource_creation_rule_name,
+    default_time_increment,
+    default_time_increment_before,
+    stop_snipes_after,
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -115,7 +125,7 @@ def update_dynamodb_with_rules(
                 "resource_creation_rule_name": resource_creation_rule_name,
                 "snipes_remaining": stop_snipes_after,
                 "default_time_increment": default_time_increment,
-                "default_time_increment_before": default_time_increment_before
+                "default_time_increment_before": default_time_increment_before,
             }
         )
         print(f"DynamoDB updated for auction {auction_id} with rules.")
@@ -210,60 +220,60 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
         }
-    
+
     update_dynamodb_with_rules(
-            auction_id,
-            start_time,
-            end_time,
-            start_rule_name if time_diff > 360 else None,
-            end_rule_name,
-            resource_creation_rule_name if time_diff > 360 else None,
-            default_time_increment,
-            default_time_increment_before,
-            stop_snipes_after
-        )
-        
-    
+        auction_id,
+        start_time,
+        end_time,
+        start_rule_name if time_diff > 360 else None,
+        end_rule_name,
+        resource_creation_rule_name if time_diff > 360 else None,
+        default_time_increment,
+        default_time_increment_before,
+        stop_snipes_after,
+    )
+
     start_time_dt = parser.parse(start_time).astimezone(timezone.utc)
     current_time = datetime.now(timezone.utc)
     time_diff = (start_time_dt - current_time).total_seconds()
 
     start_rule_name = create_eventbridge_rule(
-                f"StartAuction_{auction_id}",
-                start_time,
-                "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-                {"auction_id": auction_id, "status": "STARTED"},
-            )
-    
+        f"StartAuction_{auction_id}",
+        start_time,
+        "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
+        {"auction_id": auction_id, "status": "STARTED"},
+    )
+
     end_rule_name = create_eventbridge_rule(
-            f"EndAuction_{auction_id}",
-            end_time,
-            "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
-            {"auction_id": auction_id, "status": "ENDED"},
-        )
+        f"EndAuction_{auction_id}",
+        end_time,
+        "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
+        {"auction_id": auction_id, "status": "ENDED"},
+    )
 
     try:
         if time_diff <= 360:  # Less than or equal to 6 minutes
-            print("Start time is less than or equal to 6 minutes away. Executing directly.")
-    
+            print(
+                "Start time is less than or equal to 6 minutes away. Executing directly."
+            )
+
             lambda_client.invoke(
                 FunctionName="arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
                 InvocationType="RequestResponse",
-                Payload=json.dumps({"auction_id": auction_id, "status": "CREATING"})
+                Payload=json.dumps({"auction_id": auction_id, "status": "CREATING"}),
             )
 
         else:
-           
+
             formatted_start_time = parser.parse(start_time).astimezone(timezone.utc)
             creation_time = formatted_start_time - timedelta(minutes=5)
-            
+
             resource_creation_rule_name = create_eventbridge_rule(
                 f"ResourceCreationFor_{auction_id}",
                 creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
                 {"auction_id": auction_id, "status": "SCHEDULED"},
             )
-        
 
         return {
             "statusCode": 201,
