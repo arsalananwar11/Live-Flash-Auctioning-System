@@ -179,8 +179,9 @@ def lambda_handler(event, context):
 
         response = auction_table.get_item(Key={"auction_id": auction_id})
         auction_item = response.get("Item")
+        print(auction_item)
 
-        if not auction_id or action not in ["SCHEDULED"]:
+        if not auction_id or action not in ["CREATING", "SCHEDULED"]:
             raise ValueError(
                 "Missing or invalid 'auction_id' or 'action' in the event."
             )

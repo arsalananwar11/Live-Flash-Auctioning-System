@@ -136,7 +136,7 @@ def lambda_handler(event, context):
         # print(f"Getting Body")
         # body = json.loads(event.get("body", {}))
         body = json.loads(event.get("body", {}))
-        print("Body: ", body)
+        # print("Body: ", body)
         if not body or body == {}:
             body = json.dumps(event)
 

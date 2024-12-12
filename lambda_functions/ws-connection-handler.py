@@ -2,9 +2,6 @@ from datetime import datetime
 import json
 import uuid
 import boto3
-
-# import time
-# from datetime import timedelta
 from time_helper import calculate_remaining_time
 from botocore.exceptions import ClientError
 from leaderboard_helper import broadcast_leaderboard
@@ -106,7 +103,7 @@ def lambda_handler(event, context):
             if action == "create":
                 print("in create")
                 auction_id = body.get("auction_id")
-                # user_id = body.get('user_id')
+                user_id = body.get("user_id")
                 print("in create 2")
 
                 if not auction_id or not user_id:

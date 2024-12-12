@@ -76,19 +76,47 @@ def delete_eventbridge_rule(rule_name):
 
 
 def send_websocket_message(connection_id, message):
+    """
+    Sends a WebSocket message to the client using API Gateway Management API.
+    """
     try:
         apigateway_api.post_to_connection(
             ConnectionId=connection_id,
             Data=json.dumps(message),
         )
         print(f"Message sent to connection: {connection_id}")
+    except boto3.exceptions.Boto3Error as e:
+        print(f"WebSocket error: {str(e)}")
+        if "GoneException" in str(e):
+            print(f"Connection {connection_id} is no longer valid.")
+            # Optional: Clean up the invalid connection in DynamoDB if necessary
     except Exception as e:
-        print(f"Error sending message: {e}")
+        print(f"Unexpected error sending WebSocket message: {str(e)}")
+
+
+def is_connection_active(connection_id):
+    try:
+        # Test connection
+        apigateway_api.get_connection(ConnectionId=connection_id)
+        return True
+    except apigateway_api.exceptions.GoneException:
+        print(f"Connection {connection_id} is no longer active.")
+        return False
+    except Exception as e:
+        print(f"Unexpected error checking connection {connection_id}: {str(e)}")
+        return False
 
 
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
     auction_id = event["auction_id"]
+
+    if not auction_id:
+        print("Missing auction_id in the event.")
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "Missing auction_id in the event."}),
+        }
 
     try:
         response = auction_table.get_item(Key={"auction_id": auction_id})
@@ -100,18 +128,18 @@ def lambda_handler(event, context):
 
         auction_connection_id = auction_item.get("auction_connectionId")
         # auction_connection_id = auction_item.get("auction_connectionId")
-
+        print("Auction Connection ID: ", auction_connection_id)
         if not auction_connection_id:
-            print(
-                f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
-            )
+            print(f"No WebSocket connection for auction {auction_id}.")
+        elif not is_connection_active(auction_connection_id):
+            print(f"WebSocket connection {auction_connection_id} is no longer active.")
         else:
+            # Send WebSocket notification
             message = {
                 "auction_id": auction_id,
                 "auction_status": "STARTED",
                 "message": "Auction has started.",
             }
-            # Send WebSocket notification
             send_websocket_message(auction_connection_id, message)
 
         # Update DynamoDB auction status
