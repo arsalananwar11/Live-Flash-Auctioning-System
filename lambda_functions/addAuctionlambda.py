@@ -12,7 +12,6 @@ eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 
 
-
 dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
 
