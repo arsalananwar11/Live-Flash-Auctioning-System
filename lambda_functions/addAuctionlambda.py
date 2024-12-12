@@ -45,7 +45,7 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
         cron_expression = convert_to_cron(time)
         print(f"cron_expression {cron_expression}")
         # Create the rule
-        response = eventbridge_client.put_rule(
+        eventbridge_client.put_rule(
             Name=rule_name,
             ScheduleExpression=f"cron({cron_expression})",
             State="ENABLED",
@@ -103,9 +103,6 @@ def update_dynamodb_with_rules(
     auction_id,
     start_time,
     end_time,
-    start_rule_name,
-    end_rule_name,
-    resource_creation_rule_name,
     default_time_increment,
     default_time_increment_before,
     stop_snipes_after,
@@ -120,9 +117,6 @@ def update_dynamodb_with_rules(
                 "auction_start_time": start_time,
                 "auction_end_time": end_time,
                 "auction_status": "SCHEDULED",
-                "start_rule_name": start_rule_name,
-                "end_rule_name": end_rule_name,
-                "resource_creation_rule_name": resource_creation_rule_name,
                 "snipes_remaining": stop_snipes_after,
                 "default_time_increment": default_time_increment,
                 "default_time_increment_before": default_time_increment_before,
@@ -225,9 +219,6 @@ def lambda_handler(event, context):
         auction_id,
         start_time,
         end_time,
-        start_rule_name if time_diff > 360 else None,
-        end_rule_name,
-        resource_creation_rule_name if time_diff > 360 else None,
         default_time_increment,
         default_time_increment_before,
         stop_snipes_after,
@@ -237,14 +228,14 @@ def lambda_handler(event, context):
     current_time = datetime.now(timezone.utc)
     time_diff = (start_time_dt - current_time).total_seconds()
 
-    start_rule_name = create_eventbridge_rule(
+    create_eventbridge_rule(
         f"StartAuction_{auction_id}",
         start_time,
         "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
         {"auction_id": auction_id, "status": "STARTED"},
     )
 
-    end_rule_name = create_eventbridge_rule(
+    create_eventbridge_rule(
         f"EndAuction_{auction_id}",
         end_time,
         "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
@@ -268,7 +259,7 @@ def lambda_handler(event, context):
             formatted_start_time = parser.parse(start_time).astimezone(timezone.utc)
             creation_time = formatted_start_time - timedelta(minutes=5)
 
-            resource_creation_rule_name = create_eventbridge_rule(
+            create_eventbridge_rule(
                 f"ResourceCreationFor_{auction_id}",
                 creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
