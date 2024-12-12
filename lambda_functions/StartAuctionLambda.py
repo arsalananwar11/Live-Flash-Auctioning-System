@@ -6,8 +6,9 @@ import os
 
 dynamodb = boto3.resource("dynamodb")
 eventbridge_client = boto3.client("events")
+lambda_client = boto3.client("lambda")
 auction_table = dynamodb.Table("auction-connections")
-apigateway_management_api = boto3.client(
+apigateway_api = boto3.client(
     "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
 )
 
@@ -63,7 +64,7 @@ def delete_eventbridge_rule(rule_name):
 
         if target_ids:
             eventbridge_client.remove_targets(Rule=rule_name, Ids=target_ids)
-            print(f"Removed targets from rule: {rule_name}")
+            print(f"Removed targets from rule: {rule_name} and its id {target_ids}")
 
         eventbridge_client.delete_rule(Name=rule_name)
         print(f"Deleted rule: {rule_name}")
@@ -76,7 +77,7 @@ def delete_eventbridge_rule(rule_name):
 
 def send_websocket_message(connection_id, message):
     try:
-        apigateway_management_api.post_to_connection(
+        apigateway_api.post_to_connection(
             ConnectionId=connection_id,
             Data=json.dumps(message),
         )
@@ -98,12 +99,7 @@ def lambda_handler(event, context):
             return {"statusCode": 404, "body": "Auction not found"}
 
         auction_connection_id = auction_item.get("auction_connectionId")
-
-        auction_table.update_item(
-            Key={"auction_id": auction_id},
-            UpdateExpression="SET auction_status = :status",
-            ExpressionAttributeValues={":status": "STARTED"},
-        )
+        # auction_connection_id = auction_item.get("auction_connectionId")
 
         if not auction_connection_id:
             print(
@@ -111,14 +107,20 @@ def lambda_handler(event, context):
             )
         else:
             message = {
-                "auction_status": "STARTED",
                 "auction_id": auction_id,
+                "auction_status": "STARTED",
                 "message": "Auction has started.",
             }
             # Send WebSocket notification
             send_websocket_message(auction_connection_id, message)
 
-        print(f"Auction {auction_id} status updated to IN_PROGRESS in DynamoDB.")
+        # Update DynamoDB auction status
+        auction_table.update_item(
+            Key={"auction_id": auction_id},
+            UpdateExpression="SET auction_status = :status",
+            ExpressionAttributeValues={":status": "STARTED"},
+        )
+        print(f"Auction {auction_id} status updated to STARTED in DynamoDB.")
 
         # Update RDS auction status
         update_rds(auction_id, is_active=1)
@@ -132,9 +134,10 @@ def lambda_handler(event, context):
                 {"message": f"Auction {auction_id} started successfully."}
             ),
         }
+
     except Exception as e:
-        print("Error starting auction:", str(e))
+        print(f"Error processing auction start: {str(e)}")
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": "Failed to start the auction."}),
+            "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
         }
