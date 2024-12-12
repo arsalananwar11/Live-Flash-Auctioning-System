@@ -1,9 +1,6 @@
 import base64
-from flask import session
+from flask import current_app, session
 import requests
-import os
-
-api_gateway_url = os.getenv("API_GATEWAY_URL")
 
 
 class AuctionService:
@@ -20,7 +17,7 @@ class AuctionService:
                 payload = {"user_id": user_id}
                 params = {"mode": mode}
                 response = requests.get(
-                    f"{api_gateway_url}/get-auctions",
+                    f"{current_app.config['API_GATEWAY_URL']}/get-auctions",
                     params=params,
                     json=payload,
                     headers={"Content-Type": "application/json"},
@@ -28,13 +25,13 @@ class AuctionService:
             elif mode == "upcoming_auctions":
                 params = {"mode": mode}
                 response = requests.get(
-                    f"{api_gateway_url}/get-auctions",
+                    f"{current_app.config['API_GATEWAY_URL']}/get-auctions",
                     params=params,
                     headers={"Content-Type": "application/json"},
                 )
             else:
                 response = requests.get(
-                    f"{api_gateway_url}/get-auctions",
+                    f"{current_app.config['API_GATEWAY_URL']}/get-auctions",
                     headers={"Content-Type": "application/json"},
                 )
 
@@ -77,7 +74,7 @@ class AuctionService:
         try:
             params = {"mode": "single_auction", "auction_id": auction_id}
             response = requests.get(
-                f"{api_gateway_url}/get-auctions",
+                f"{current_app.config['API_GATEWAY_URL']}/get-auctions",
                 params=params,
                 headers={"Content-Type": "application/json"},
                 timeout=10,
@@ -117,7 +114,7 @@ class AuctionService:
         }
 
         try:
-            url = f"{api_gateway_url}/add-auction"
+            url = f"{current_app.config['API_GATEWAY_URL']}/add-auction"
             response = requests.post(
                 url, json=auction_payload, headers={"Content-Type": "application/json"}
             )
@@ -213,7 +210,7 @@ class AuctionService:
         }
 
         try:
-            url = f"{api_gateway_url}/edit-auction"
+            url = f"{current_app.config['API_GATEWAY_URL']}/edit-auction"
             print(f"send request to {url}")
             response = requests.patch(
                 url, json=auction_payload, headers={"Content-Type": "application/json"}

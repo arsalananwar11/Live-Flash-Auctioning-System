@@ -46,6 +46,8 @@ def create_app():
             "SQLALCHEMY_TRACK_MODIFICATIONS": os.getenv(
                 "SQLALCHEMY_TRACK_MODIFICATIONS"
             ),
+            "API_GATEWAY_URL": os.getenv("API_GATEWAY_URL"),
+            "WEB_SOCKET_URL": os.getenv("WEB_SOCKET_URL"),
         }
     )
 

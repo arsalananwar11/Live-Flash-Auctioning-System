@@ -45,13 +45,12 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
         cron_expression = convert_to_cron(time)
         print(f"cron_expression {cron_expression}")
         # Create the rule
-        response = eventbridge_client.put_rule(
+        eventbridge_client.put_rule(
             Name=rule_name,
             ScheduleExpression=f"cron({cron_expression})",
             State="ENABLED",
             Description=f"Trigger for auction {input_data['auction_id']} at {time}",
         )
-        rule_arn = response["RuleArn"]
 
         # Add targets to the rule
         eventbridge_client.put_targets(
@@ -59,15 +58,6 @@ def create_eventbridge_rule(rule_name, time, target_lambda_arn, input_data):
             Targets=[
                 {"Id": "1", "Arn": target_lambda_arn, "Input": json.dumps(input_data)}
             ],
-        )
-
-        # Add permissions for EventBridge to invoke the Lambda
-        lambda_client.add_permission(
-            FunctionName=target_lambda_arn,
-            StatementId=f"{rule_name}-permission",
-            Action="lambda:InvokeFunction",
-            Principal="events.amazonaws.com",
-            SourceArn=rule_arn,
         )
 
         print(f"Created EventBridge rule: {rule_name}")
@@ -113,9 +103,9 @@ def update_dynamodb_with_rules(
     auction_id,
     start_time,
     end_time,
-    start_rule_name,
-    end_rule_name,
-    resource_creation_rule_name,
+    default_time_increment,
+    default_time_increment_before,
+    stop_snipes_after,
 ):
     """
     Updates the DynamoDB table to add start_rule_name and end_rule_name.
@@ -127,9 +117,9 @@ def update_dynamodb_with_rules(
                 "auction_start_time": start_time,
                 "auction_end_time": end_time,
                 "auction_status": "SCHEDULED",
-                "start_rule_name": start_rule_name,
-                "end_rule_name": end_rule_name,
-                "resource_creation_rule_name": resource_creation_rule_name,
+                "snipes_remaining": stop_snipes_after,
+                "default_time_increment": default_time_increment,
+                "default_time_increment_before": default_time_increment_before,
             }
         )
         print(f"DynamoDB updated for auction {auction_id} with rules.")
@@ -146,6 +136,7 @@ def lambda_handler(event, context):
         # print(f"Getting Body")
         # body = json.loads(event.get("body", {}))
         body = json.loads(event.get("body", {}))
+        print("Body: ", body)
         if not body or body == {}:
             body = json.dumps(event)
 
@@ -224,45 +215,56 @@ def lambda_handler(event, context):
             "body": json.dumps({"error": "Internal Server Error", "details": str(e)}),
         }
 
+    update_dynamodb_with_rules(
+        auction_id,
+        start_time,
+        end_time,
+        default_time_increment,
+        default_time_increment_before,
+        stop_snipes_after,
+    )
+
+    start_time_dt = parser.parse(start_time).astimezone(timezone.utc)
+    current_time = datetime.now(timezone.utc)
+    time_diff = (start_time_dt - current_time).total_seconds()
+
+    create_eventbridge_rule(
+        f"StartAuction_{auction_id}",
+        start_time,
+        "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
+        {"auction_id": auction_id, "status": "STARTED"},
+    )
+
+    create_eventbridge_rule(
+        f"EndAuction_{auction_id}",
+        end_time,
+        "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
+        {"auction_id": auction_id, "status": "ENDED"},
+    )
+
     try:
-        start_rule_name = create_eventbridge_rule(
-            f"StartAuction_{auction_id}",
-            start_time,
-            "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
-            {"auction_id": auction_id, "status": "STARTED"},
-        )
+        if time_diff <= 360:  # Less than or equal to 6 minutes
+            print(
+                "Start time is less than or equal to 6 minutes away. Executing directly."
+            )
 
-        end_rule_name = create_eventbridge_rule(
-            f"EndAuction_{auction_id}",
-            end_time,
-            "arn:aws:lambda:us-east-1:908027408981:function:EndAuctionLambda",
-            {"auction_id": auction_id, "status": "ENDED"},
-        )
+            lambda_client.invoke(
+                FunctionName="arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
+                InvocationType="RequestResponse",
+                Payload=json.dumps({"auction_id": auction_id, "status": "CREATING"}),
+            )
 
-        formatted_start_time = parser.parse(start_time).astimezone(timezone.utc)
-        creationTime = formatted_start_time - timedelta(minutes=5)
+        else:
 
-        resource_creation_rule_name = create_eventbridge_rule(
-            f"ResourceCreationFor_{auction_id}",
-            creationTime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
-            {"auction_id": auction_id, "status": "SCHEDULED"},
-        )
+            formatted_start_time = parser.parse(start_time).astimezone(timezone.utc)
+            creation_time = formatted_start_time - timedelta(minutes=5)
 
-        update_dynamodb_with_rules(
-            auction_id,
-            start_time,
-            end_time,
-            start_rule_name,
-            end_rule_name,
-            resource_creation_rule_name,
-        )
-
-        # message = {
-        #     "action": "auction_update",
-        #     "auction_id": auction_id,
-        #     "status": "NEW_AUCTION_ADDED",
-        # }
+            create_eventbridge_rule(
+                f"ResourceCreationFor_{auction_id}",
+                creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
+                {"auction_id": auction_id, "status": "SCHEDULED"},
+            )
 
         return {
             "statusCode": 201,
