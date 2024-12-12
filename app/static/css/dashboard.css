@@ -65,30 +65,28 @@
 /* Auction Grid Styles */
 .auction-grid {
     flex: 1;
-    overflow-y: auto;
+    /* overflow-y: auto; */
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-height: calc(100vh - 200px); /* Adjust based on other elements' heights */
+    max-height: calc(100vh - 200px); 
     padding-right: 10px;
 }
 
 .auction-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
 }
 
-.auction-column {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 300px; /* Adjust card width */
+.auction-card {
     background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    height: fit-content; /* Added missing semicolon */
+    height: 550px;
+    width: 300px;
 }
 
 .card-content {

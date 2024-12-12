@@ -27,7 +27,7 @@ S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 def convert_to_cron(timestamp):
     try:
         # Parse timestamp and convert to UTC
-        dt = parser.parse(timestamp).astimezone(timezone.utc)
+        dt = parser.parse(timestamp).astimezone(timezone.utc) - timedelta(minutes=1)
 
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
