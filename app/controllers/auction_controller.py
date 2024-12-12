@@ -186,8 +186,6 @@ def get_auctions():
         else:
             return jsonify({"error": "Method Not Allowed"}), 405
 
-        # if mode != "my_auctions":
-        #     return jsonify({"error": "Fetching auctions is not implemented yet."}), 501
 
         response = AuctionService.get_auctions(mode, user_id)
         if response.get("status") == "success":
@@ -204,8 +202,7 @@ def get_auctions():
             )
 
     except Exception as e:
-        print("Exception occurred while fetching auctions:", e)
-        traceback.print_exc()
+        logger.error("Exception occurred while fetching auctions:", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
