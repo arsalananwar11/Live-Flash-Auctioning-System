@@ -7,10 +7,10 @@ from datetime import datetime, timedelta, timezone
 from dateutil import parser
 import pymysql
 
-
 s3_client = boto3.client("s3")
 eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
+
 
 dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
@@ -253,7 +253,7 @@ def lambda_handler(event, context):
             f"ResourceCreationFor_{auction_id}",
             creationTime.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
-            {"auction_id": auction_id, "status": "CREATING"},
+            {"auction_id": auction_id, "status": "SCHEDULED"},
         )
 
         update_dynamodb_with_rules(
@@ -264,6 +264,12 @@ def lambda_handler(event, context):
             end_rule_name,
             resource_creation_rule_name,
         )
+
+        # message = {
+        #     "action": "auction_update",
+        #     "auction_id": auction_id,
+        #     "status": "NEW_AUCTION_ADDED",
+        # }
 
         return {
             "statusCode": 201,
