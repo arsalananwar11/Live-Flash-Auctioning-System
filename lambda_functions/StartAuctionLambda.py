@@ -75,20 +75,55 @@ def delete_eventbridge_rule(rule_name):
         raise
 
 
-def send_websocket_message(connection_id, message):
+def send_websocket_message(auction_id, message):
+    """
+    Sends a WebSocket message to the all client connected to particular auction using API Gateway Management API.
+    """
     try:
-        apigateway_api.post_to_connection(
-            ConnectionId=connection_id,
-            Data=json.dumps(message),
+        user_connections_table = dynamodb.Table("user-connections")
+
+        response = user_connections_table.scan(
+            FilterExpression="auction_id = :auction_id",
+            ExpressionAttributeValues={":auction_id": auction_id},
         )
-        print(f"Message sent to connection: {connection_id}")
+        connections = response.get("Items", [])
+
+        if not connections:
+            print(f"No active connections for auction {auction_id}.")
+        else:
+            message = {
+                "auction_id": auction_id,
+                "auction_status": "STARTED",
+                "message": "Auction has started.",
+            }
+
+            # Send message to all connected clients
+            for connection in connections:
+                connection_id = connection["connection_id"]
+                apigateway_api.post_to_connection(
+                    ConnectionId=connection_id,
+                    Data=json.dumps(message),
+                )
+        # print(f"Message sent to connection: {connection_id}")
+    except boto3.exceptions.Boto3Error as e:
+        print(f"WebSocket error: {str(e)}")
+        if "GoneException" in str(e):
+            print(f"Connection {connection_id} is no longer valid.")
+            # Optional: Clean up the invalid connection in DynamoDB if necessary
     except Exception as e:
-        print(f"Error sending message: {e}")
+        print(f"Unexpected error sending WebSocket message: {str(e)}")
 
 
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
     auction_id = event["auction_id"]
+
+    if not auction_id:
+        print("Missing auction_id in the event.")
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "Missing auction_id in the event."}),
+        }
 
     try:
         response = auction_table.get_item(Key={"auction_id": auction_id})
@@ -98,22 +133,6 @@ def lambda_handler(event, context):
             print(f"Auction {auction_id} not found in DynamoDB.")
             return {"statusCode": 404, "body": "Auction not found"}
 
-        auction_connection_id = auction_item.get("auction_connectionId")
-        # auction_connection_id = auction_item.get("auction_connectionId")
-
-        if not auction_connection_id:
-            print(
-                f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
-            )
-        else:
-            message = {
-                "auction_id": auction_id,
-                "auction_status": "STARTED",
-                "message": "Auction has started.",
-            }
-            # Send WebSocket notification
-            send_websocket_message(auction_connection_id, message)
-
         # Update DynamoDB auction status
         auction_table.update_item(
             Key={"auction_id": auction_id},
@@ -121,6 +140,16 @@ def lambda_handler(event, context):
             ExpressionAttributeValues={":status": "STARTED"},
         )
         print(f"Auction {auction_id} status updated to STARTED in DynamoDB.")
+
+        # auction_connection_id = auction_item.get("auction_connectionId")
+
+        message = {
+            "auction_id": auction_id,
+            "auction_status": "STARTED",
+            "message": "Auction has started.",
+        }
+
+        send_websocket_message(auction_id, message)
 
         # Update RDS auction status
         update_rds(auction_id, is_active=1)

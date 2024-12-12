@@ -27,7 +27,7 @@ S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 def convert_to_cron(timestamp):
     try:
         # Parse timestamp and convert to UTC
-        dt = parser.parse(timestamp).astimezone(timezone.utc)
+        dt = parser.parse(timestamp).astimezone(timezone.utc) - timedelta(seconds=10)
 
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
@@ -136,7 +136,7 @@ def lambda_handler(event, context):
         # print(f"Getting Body")
         # body = json.loads(event.get("body", {}))
         body = json.loads(event.get("body", {}))
-        print("Body: ", body)
+        # print("Body: ", body)
         if not body or body == {}:
             body = json.dumps(event)
 
@@ -243,7 +243,7 @@ def lambda_handler(event, context):
     )
 
     try:
-        if time_diff <= 360:  # Less than or equal to 6 minutes
+        if time_diff <= 300:  # Less than or equal to 6 minutes
             print(
                 "Start time is less than or equal to 6 minutes away. Executing directly."
             )
