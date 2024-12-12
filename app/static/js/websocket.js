@@ -110,9 +110,6 @@ export class AuctionWebSocket {
         auctionStatusDiv.style.display = "block";
         spanElement.textContent = "Auction has ended!";
       }
-      else {
-        bidButtonsDiv.style.display = "none";
-      }
 
       if (type === "leaderboardUpdate") {
         this.updateLeaderboard(message.leaderboard);
