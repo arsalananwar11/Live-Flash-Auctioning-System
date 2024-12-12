@@ -7,7 +7,10 @@ from app.services.auction_service import AuctionService
 from flask_login import login_required, current_user
 import os
 from flask import session
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 auction_controller = Blueprint("auction_controller", __name__)
 
@@ -185,7 +188,6 @@ def get_auctions():
 
         else:
             return jsonify({"error": "Method Not Allowed"}), 405
-
 
         response = AuctionService.get_auctions(mode, user_id)
         if response.get("status") == "success":

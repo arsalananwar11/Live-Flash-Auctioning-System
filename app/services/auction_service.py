@@ -2,6 +2,7 @@ import base64
 from flask import current_app, session
 import requests
 
+
 class AuctionService:
     @staticmethod
     def get_auctions(mode, user_id=None):
