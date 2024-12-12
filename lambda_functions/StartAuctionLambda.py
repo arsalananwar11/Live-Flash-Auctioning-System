@@ -101,12 +101,14 @@ def lambda_handler(event, context):
         # auction_connection_id = auction_item.get("auction_connectionId")
 
         if not auction_connection_id:
-            print(f"No connection ID for auction {auction_id}. Skipping WebSocket notification.")
+            print(
+                f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
+            )
         else:
             message = {
                 "auction_id": auction_id,
                 "auction_status": "STARTED",
-                "message": "Auction has started."
+                "message": "Auction has started.",
             }
             send_websocket_message(auction_connection_id, message)
 
