@@ -4,7 +4,12 @@ const bidButtonsDiv = document.querySelector(".bid-buttons-container");
 const highlightsSectionDiv = document.getElementById(
   "highlight-section-container"
 );
+const spanElement = document.querySelector(
+  "#auction-status-highlight .highlight span"
+);
 const auctionStatusDiv = document.getElementById("auction-status-highlight");
+// Store the reference to the current interval
+let interval = null;
 
 export class AuctionWebSocket {
   constructor(websocketUrl, auctionId, userId, userName) {
@@ -34,6 +39,24 @@ export class AuctionWebSocket {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log("Message received from server:", message);
+      let remaining_time = message.remaining_time;
+      let auction_status = message.auction_status;
+      let type = message.type;
+
+      if (message.statusCode == 200 && message.body) {
+        const message_body = JSON.parse(message.body);
+        console.log("Message received in body" + message_body);
+        if (message_body.auction_status == 'SNIPED') {
+          console.log("Snipe prevented");
+          remaining_time = message_body.remaining_time;
+          auction_status = message_body.auction_status;
+          type = message_body.type;
+          console.log(remaining_time);
+          clearInterval(interval);
+          auctionStatusDiv.style.display = "block";
+          spanElement.textContent = "Remaining time has been updated to prevent sniping!";
+        }
+      }
 
       // Handle specific server messages
       if (message.connectionId) {
@@ -42,8 +65,9 @@ export class AuctionWebSocket {
         console.log(`Connection ID set: ${this.connectionId}`);
       }
 
-      if (message.remaining_time) {
-        const remainingTime = message.remaining_time;
+      if (remaining_time) {
+        const remainingTime = remaining_time;
+        console.log("Updating new time" + remaining_time);
         // Update UI
         remainingTimeElement.textContent = remainingTime;
         if (remainingTime != "Auction has ended") {
@@ -59,7 +83,7 @@ export class AuctionWebSocket {
         }
       }
 
-      if (message.auction_status == "STARTED") {
+      if (auction_status == "STARTED" || auction_status == "SNIPED") {
         if (
           bidButtonsDiv.style.display === "none" ||
           bidButtonsDiv.style.display === ""
@@ -72,28 +96,27 @@ export class AuctionWebSocket {
         ) {
           highlightsSectionDiv.style.display = "block";
         }
-        auctionStatusDiv.style.display = "none";
-      } else if (message.auction_status == "CREATING") {
+        if (auction_status == "STARTED") {
+          highlightsSectionDiv.style.display = "none";
+        }
+      } else if (auction_status == "CREATING") {
         bidButtonsDiv.style.display = "none";
         auctionStatusDiv.style.display = "block";
-        const spanElement = document.querySelector(
-          "#auction-status-highlight .highlight span"
-        );
         spanElement.textContent = "Auction is about to begin in <5 mins!";
         highlightsSectionDiv.style.display = "none";
-      } else if (message.auction_status == "ENDED") {
+      } else if (auction_status == "ENDED") {
         bidButtonsDiv.style.display = "none";
         highlightsSectionDiv.style.display = "none";
         auctionStatusDiv.style.display = "block";
-        const spanElement = document.querySelector(
-          "#auction-status-highlight .highlight span"
-        );
         spanElement.textContent = "Auction has ended!";
       }
+      else {
+        bidButtonsDiv.style.display = "none";
+      }
 
-      if (message.type === "leaderboardUpdate") {
+      if (type === "leaderboardUpdate") {
         this.updateLeaderboard(message.leaderboard);
-      } else if (message.type === "error") {
+      } else if (type === "error") {
         console.error("Server error:", message.error);
       }
     };
@@ -194,7 +217,7 @@ export class AuctionWebSocket {
 
 // Countdown logic to update time every second
 function startCountdown(totalSeconds) {
-  const interval = setInterval(() => {
+  interval = setInterval(() => {
     if (totalSeconds <= 0) {
       clearInterval(interval);
       remainingTimeElement.textContent = "Time is up!";
