@@ -17,8 +17,6 @@ dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
 
 
-
-
 SQS_QUEUE_URL = os.getenv("SQS_QUEUE_URL")
 
 # RDS settings from environment variables
@@ -30,21 +28,22 @@ db_password = os.environ["DB_PASSWORD"]
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 
+
 def get_user_email(user_id):
     """
     Fetch the email of a user from Cognito User Pool using their user_id.
     """
     try:
         response = cognito_idp.admin_get_user(
-            UserPoolId=COGNITO_USER_POOL_ID,
-            Username=user_id
+            UserPoolId=COGNITO_USER_POOL_ID, Username=user_id
         )
-        for attribute in response['UserAttributes']:
-            if attribute['Name'] == 'email':
-                return attribute['Value']
+        for attribute in response["UserAttributes"]:
+            if attribute["Name"] == "email":
+                return attribute["Value"]
     except ClientError as e:
         print(f"Error fetching email for user {user_id}: {str(e)}")
     return None
+
 
 def convert_to_cron(timestamp):
     try:
@@ -148,20 +147,18 @@ def update_dynamodb_with_rules(
         raise
 
 
-
-
 def lambda_handler(event, context):
     # Log the incoming event for debugging
     print("Received event:", json.dumps(event))
 
     try:
-        
+
         body = json.loads(event.get("body", {}))
         # print("Body: ", body)
         if not body or body == {}:
             body = json.dumps(event)
 
-        if isinstance(body, str):  
+        if isinstance(body, str):
             body = json.loads(body)
 
         auction_id = str(uuid.uuid4())
@@ -261,7 +258,10 @@ def lambda_handler(event, context):
                 recipients = cursor.fetchall()
         except Exception as e:
             print(f"Error fetching users from RDS: {str(e)}")
-            return {"statusCode": 500, "body": json.dumps({"error": "Failed to fetch users"})}
+            return {
+                "statusCode": 500,
+                "body": json.dumps({"error": "Failed to fetch users"}),
+            }
 
         for recipient in recipients:
             try:
@@ -271,30 +271,29 @@ def lambda_handler(event, context):
                     print("Skipping recipient without user_id.")
                     continue
                 email = get_user_email(user_id)
-                
+
                 if not email:
                     print(f"Skipping user {user_id} as email could not be retrieved.")
                     continue
 
                 sqs_message = {
                     "email": email,
-                    "user_name": user_name,  
+                    "user_name": user_name,
                     "auction_details": {
-                    "auction_id": auction_id,
-                    "auction_item": auction_item,
-                    "auction_desc": auction_desc,
-                    "base_price": base_price,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "created_by": created_by,
-                    }
+                        "auction_id": auction_id,
+                        "auction_item": auction_item,
+                        "auction_desc": auction_desc,
+                        "base_price": base_price,
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "created_by": created_by,
+                    },
                 }
 
-            # Send the message to SQS
+                # Send the message to SQS
                 print(f"Sending message to SQS for user {user_id} with email {email}")
                 sqs_client.send_message(
-                    QueueUrl=SQS_QUEUE_URL,
-                    MessageBody=json.dumps(sqs_message)
+                    QueueUrl=SQS_QUEUE_URL, MessageBody=json.dumps(sqs_message)
                 )
                 print(f"Message sent to SQS for user {user_id} with email {email}")
 
@@ -333,7 +332,6 @@ def lambda_handler(event, context):
                 "arn:aws:lambda:us-east-1:908027408981:function:StartAuctionLambda",
                 {"auction_id": auction_id, "status": "STARTED"},
             )
-        
 
         return {
             "statusCode": 201,

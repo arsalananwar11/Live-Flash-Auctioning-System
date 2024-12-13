@@ -2,8 +2,6 @@ import json
 import boto3
 import os
 from botocore.exceptions import ClientError
-from datetime import datetime, timezone
-from dateutil import parser  # For parsing ISO 8601 datetime strings
 import time  # For sleep functionality
 
 # Initialize AWS clients
@@ -176,11 +174,13 @@ def send_websocket_message(auction_id, message):
     Sends a WebSocket message to the all client connected to particular auction using API Gateway Management API.
     """
     try:
-        user_connections_table = dynamodb.Table('user-connections')
-        
+        user_connections_table = dynamodb.Table("user-connections")
+
         response = user_connections_table.query(
             IndexName="auction_id-index",
-            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(auction_id)
+            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(
+                auction_id
+            ),
         )
         connections = response.get("Items", [])
 
@@ -236,7 +236,6 @@ def lambda_handler(event, context):
         # Define queue names
         fifo_queue_name = f"AuctionActionsQueue-{auction_id}.fifo"
         priority_queue_name = f"AuctionPriorityQueue-{auction_id}"
-        
 
         if action == "SCHEDULED" or action == "CREATING":
             # Update auction status to 'CREATING'

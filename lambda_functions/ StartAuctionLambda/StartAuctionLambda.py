@@ -18,8 +18,7 @@ eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 auction_table = dynamodb.Table("auction-connections")
 api_gateway = boto3.client(
-    'apigatewaymanagementapi', 
-    endpoint_url=os.getenv('WEBSOCKET_ENDPOINT')
+    "apigatewaymanagementapi", endpoint_url=os.getenv("WEBSOCKET_ENDPOINT")
 )
 
 rds_host = os.environ["DB_HOSTNAME"]
@@ -92,7 +91,9 @@ def send_websocket_message(auction_id, message):
 
         response = user_connections_table.query(
             IndexName="auction_id-index",
-            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(auction_id)
+            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(
+                auction_id
+            ),
         )
         connections = response.get("Items", [])
 
@@ -103,14 +104,22 @@ def send_websocket_message(auction_id, message):
             for connection in connections:
                 connection_id = connection.get("connection_id")
                 try:
-                    logger.info("Sending start auction message to connection: %s", connection_id)
-                    api_gateway.post_to_connection(
-                        ConnectionId=connection_id,
-                        Data=json.dumps(message)
+                    logger.info(
+                        "Sending start auction message to connection: %s", connection_id
                     )
-                    logger.info("Successfully sent update to connection_id: %s", connection_id)
+                    api_gateway.post_to_connection(
+                        ConnectionId=connection_id, Data=json.dumps(message)
+                    )
+                    logger.info(
+                        "Successfully sent update to connection_id: %s", connection_id
+                    )
                 except ClientError as e:
-                    logger.error("Failed to send message to connection_id %s: %s", connection_id, e.response['Error']['Message'], exc_info=True)
+                    logger.error(
+                        "Failed to send message to connection_id %s: %s",
+                        connection_id,
+                        e.response["Error"]["Message"],
+                        exc_info=True,
+                    )
     except boto3.exceptions.Boto3Error as e:
         print(f"WebSocket error: {str(e)}")
         if "GoneException" in str(e):
@@ -132,7 +141,9 @@ def lambda_handler(event, context):
         }
 
     try:
-        auction_data = auction_table.get_item(Key={"auction_id": auction_id}).get("Item")
+        auction_data = auction_table.get_item(Key={"auction_id": auction_id}).get(
+            "Item"
+        )
 
         if not auction_data:
             print(f"Auction {auction_id} not found in DynamoDB.")
@@ -142,8 +153,8 @@ def lambda_handler(event, context):
         if not start_time_str:
             print(f"Auction {auction_id} does not have a start time.")
             return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Auction does not have a start time."}),
+                "statusCode": 400,
+                "body": json.dumps({"error": "Auction does not have a start time."}),
             }
 
         start_time = parser.parse(start_time_str)
@@ -155,26 +166,27 @@ def lambda_handler(event, context):
             time.sleep(sleep_duration)
         else:
             print(f"Auction {auction_id} start time has already passed.")
-        
+
         auction_table.update_item(
             Key={"auction_id": auction_id},
             UpdateExpression="SET auction_status = :status",
             ExpressionAttributeValues={":status": "STARTED"},
         )
-        
 
         end_time = auction_data.get("auction_end_time", "")
 
         remaining_time = calculate_remaining_time(end_time)
 
         message = {
-            'statusCode': 200,
-            'body': json.dumps({
-                'message': f'Auction {auction_id} Started',
-                'auction_status': 'STARTED',
-                'auction_end_time': end_time,
-                'remaining_time': remaining_time
-            })
+            "statusCode": 200,
+            "body": json.dumps(
+                {
+                    "message": f"Auction {auction_id} Started",
+                    "auction_status": "STARTED",
+                    "auction_end_time": end_time,
+                    "remaining_time": remaining_time,
+                }
+            ),
         }
 
         send_websocket_message(auction_id, message)
