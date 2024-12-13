@@ -73,16 +73,14 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0px;
     max-height: calc(100vh - 200px); /* Adjust based on other elements' heights */
     padding-right: 10px;
 }
 
 .auction-row {
-    display: flex;
-    gap: 20px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .auction-column {
@@ -136,15 +134,16 @@
   }
 
   .auction-card {
-    width: 300px;
+    width: 330px;
     height: 520px;
     background: #fff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    border-radius: 5px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    margin-bottom: 15px;
   }
 
   .card-content {

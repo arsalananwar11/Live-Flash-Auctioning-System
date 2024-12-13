@@ -111,7 +111,6 @@ function renderAuctionData(auctions) {
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
-        <div class="auction-column">
           <div class="auction-card">
             <div class="card-content">
               <header class="card-header">
@@ -135,7 +134,6 @@ function renderAuctionData(auctions) {
               </div>
             </div>
           </div>
-        </div>
       `);
   });
 }
