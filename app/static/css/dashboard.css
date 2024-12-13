@@ -155,15 +155,15 @@
 
   .card-header {
     padding: 16px;
-    background-color: #3b5998;
-    color: #fff;
+    background-color: #e3f1fe;
+    color: #373737;
   }
 
   .header-title {
     font-size: 1.25rem;
     margin: 0;
     text-align: center;
-    color: #fff;
+    color: #000;
   }
 
   .card-media img {
