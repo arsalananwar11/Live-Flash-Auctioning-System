@@ -117,7 +117,7 @@ def send_email(top_bidders, auction_item):
             [
                 f"""
                 <tr style="background-color: {'#f9f9f9' if i % 2 == 0 else '#ffffff'};">
-                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{i+1}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{i + 1}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">{bidder['user_name']}</td>
                     <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${bidder['bid_amount']:.2f}</td>
                 </tr>
