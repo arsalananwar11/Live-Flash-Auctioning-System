@@ -35,6 +35,13 @@ The Live Flash Auctioning System is an innovative platform that facilitates real
   - Uses AWS AppSync or Amazon Kinesis for real-time data synchronization between the server and clients.
   - Ensures all users receive instantaneous updates on bids and timer changes.
 
+## Architecture
+
+The architecture of the project is visualized in the diagram below:
+
+![Architecture Diagram](system_design_docs/System Architecture.svg)
+
+
 ## Getting Started
 Follow these steps to clone the repository and run the application locally with Black and Flake8 checks.
 
