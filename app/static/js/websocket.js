@@ -8,6 +8,8 @@ const spanElement = document.querySelector(
   "#auction-status-highlight .highlight span"
 );
 const auctionStatusDiv = document.getElementById("auction-status-highlight");
+const remainingSnipesElement = document.getElementById("remaining-snipes");
+
 // Store the reference to the current interval
 let interval = null;
 
@@ -51,11 +53,22 @@ export class AuctionWebSocket {
           remaining_time = message_body.remaining_time;
           auction_status = message_body.auction_status;
           type = message_body.type;
-          console.log(remaining_time);
+          let remaining_snipes = message_body.remaining_snipes;
+          remainingSnipesElement.textContent = remaining_snipes;
           clearInterval(interval);
           auctionStatusDiv.style.display = "block";
           spanElement.textContent = "Remaining time has been updated to prevent sniping!";
         }
+        if (message_body.auction_status == 'STARTED') {
+          console.log("Auction Started");
+          remaining_time = message_body.remaining_time;
+          auction_status = message_body.auction_status;
+          type = message_body.type;
+          clearInterval(interval);
+          auctionStatusDiv.style.display = "block";
+          bidButtonsDiv.style.display = "block";
+        }
+
       }
 
       // Handle specific server messages
@@ -97,7 +110,7 @@ export class AuctionWebSocket {
           highlightsSectionDiv.style.display = "block";
         }
         if (auction_status == "STARTED") {
-          highlightsSectionDiv.style.display = "none";
+          auctionStatusDiv.style.display = "none";
         }
       } else if (auction_status == "CREATING") {
         bidButtonsDiv.style.display = "none";
@@ -109,9 +122,11 @@ export class AuctionWebSocket {
         highlightsSectionDiv.style.display = "none";
         auctionStatusDiv.style.display = "block";
         spanElement.textContent = "Auction has ended!";
-      }
-      else {
+      } else if (auction_status == "SCHEDULED") {
         bidButtonsDiv.style.display = "none";
+        highlightsSectionDiv.style.display = "none";
+        auctionStatusDiv.style.display = "block";
+        spanElement.textContent = "Auction has not started yet!";
       }
 
       if (type === "leaderboardUpdate") {
