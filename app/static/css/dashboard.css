@@ -55,11 +55,17 @@
     text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 8px;
     background-color: #48a61c;
+    background-color: #48a61c;
     color: #fff;
     padding: 12px 20px;
     font: 400 14px/1;
     cursor: pointer;
     border: none;
+    text-decoration: none;
+}
+
+.create-auction-button:hover {
+    background-color: #275e0d;
     text-decoration: none;
 }
 
