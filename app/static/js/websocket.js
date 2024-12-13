@@ -236,6 +236,7 @@ function startCountdown(totalSeconds) {
     if (totalSeconds <= 0) {
       clearInterval(interval);
       remainingTimeElement.textContent = "Time is up!";
+      bidButtonsDiv.style.display = "none";
       return;
     }
 
