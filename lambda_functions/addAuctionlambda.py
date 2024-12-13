@@ -10,10 +10,14 @@ import pymysql
 s3_client = boto3.client("s3")
 eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
-
-
 dynamodb = boto3.resource("dynamodb")
 auction_table = dynamodb.Table("auction-connections")
+apigateway_management_api = boto3.client(
+    "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
+)
+
+sqs_client = boto3.client("sqs")
+SQS_QUEUE_URL = os.getenv("SQS_QUEUE_URL")
 
 # RDS settings from environment variables
 proxy_host_name = os.environ["DB_HOSTNAME"]
@@ -27,7 +31,7 @@ S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 def convert_to_cron(timestamp):
     try:
         # Parse timestamp and convert to UTC
-        dt = parser.parse(timestamp).astimezone(timezone.utc)
+        dt = parser.parse(timestamp).astimezone(timezone.utc) - timedelta(minutes=1)
 
         # Generate cron expression
         return f"{dt.minute} {dt.hour} {dt.day} {dt.month} ? {dt.year}"
@@ -243,7 +247,7 @@ def lambda_handler(event, context):
     )
 
     try:
-        if time_diff <= 360:  # Less than or equal to 6 minutes
+        if time_diff <= 300:  # Less than or equal to 6 minutes
             print(
                 "Start time is less than or equal to 6 minutes away. Executing directly."
             )
@@ -265,6 +269,45 @@ def lambda_handler(event, context):
                 "arn:aws:lambda:us-east-1:908027408981:function:AuctionResourceManager",
                 {"auction_id": auction_id, "status": "SCHEDULED"},
             )
+        connection = connect_to_rds()
+        recipients = []
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT email, user_name FROM users WHERE is_active = 1")
+                recipients = cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching users from RDS: {str(e)}")
+            return {
+                "statusCode": 500,
+                "body": json.dumps({"error": "Failed to fetch users"}),
+            }
+
+        # Write email jobs to SQS
+        for recipient in recipients:
+            try:
+                sqs_client.send_message(
+                    QueueUrl=SQS_QUEUE_URL,
+                    MessageBody=json.dumps(
+                        {
+                            "email": recipient["email"],
+                            "user_name": recipient["user_name"],
+                            "auction_details": {
+                                "auction_item": auction_item,
+                                "auction_desc": auction_desc,
+                                "base_price": base_price,
+                                "start_time": start_time,
+                                "end_time": end_time,
+                                "created_by": created_by,
+                                "product_images": product_images,
+                                "default_time_increment": default_time_increment,
+                                "default_time_increment_before": default_time_increment_before,
+                                "stop_snipes_after": stop_snipes_after,
+                            },
+                        }
+                    ),
+                )
+            except Exception as e:
+                print(f"Error adding message to SQS for {recipient['email']}: {str(e)}")
 
         return {
             "statusCode": 201,

@@ -95,6 +95,7 @@ def lambda_handler(event, context):
             filename = f"image_{idx + 1}.jpg"
             upload_to_s3(base64_image, auction_id, filename)
 
+        # Update auction in the database
         connection = connect_to_rds()
         with connection.cursor() as cursor:
             update_query = """
@@ -131,6 +132,7 @@ def lambda_handler(event, context):
             )
             connection.commit()
 
+        # Success response
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
