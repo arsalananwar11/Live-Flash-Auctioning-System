@@ -36,10 +36,10 @@ $(document).ready(function () {
       return response.json();
     })
     .then((data) => {
-      console.log("User Details:", data);
+      // console.log("User Details:", data);
       if (data && data.id) {
         loggedInUserId = data.id; // Store the user ID globally
-        console.log(`Logged-in User ID: ${loggedInUserId}`);
+        // console.log(`Logged-in User ID: ${loggedInUserId}`);
       }
       // You can use user details to customize the dashboard UI, like showing the username
       if (data && data.name) {
@@ -247,7 +247,7 @@ function connectToWebSocket(auctionID) {
 $(document).on("click", ".join-button", function () {
   const auctionID = $(this).data("auction-id");
   // connectToWebSocket(auctionID);
-  console.log("Button Clicked");
+  // console.log("Button Clicked");
   console.log(`Attempting to join auction: ${auctionID}`);
   console.log("Join auction:", auctionID);
   window.location.href = `/auctions/${auctionID}`;
