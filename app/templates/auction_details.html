@@ -49,7 +49,7 @@
                 <p><span class="label">Initial End Time:</span> <span id="end-time">{{ auction.end_time }}</span></p>
                 <p><span class="label">Increment Time:</span> {{ auction.default_time_increment }} minutes for every snipe</p>
                 <p><span class="label">Snipe Starts:</span> {{ auction.default_time_increment_before }} minutes before end time</p>
-                <p><span class="label">No. of Allowed Snipes:</span> {{ auction.stop_snipes_after }} (sniping stops after this count)</p>
+                <p><span class="label">No. of Allowed Snipes:</span>  <span id="remaining-snipes">{{ auction.stop_snipes_after }}</span> (sniping stops after this count)</p>
                 <p><span class="label">Description:</span> {{ auction.auction_desc }}</p>
             </div>
         </div>
