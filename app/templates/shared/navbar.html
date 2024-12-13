@@ -1,10 +1,10 @@
 <!-- Navbar (top bar) -->
 <div class="w3-top">
     <div class="w3-bar w3-white w3-padding w3-card" style="letter-spacing:4px;">
-        <a href="/dashboard" class="w3-bar-item w3-button">Live Flash Auctioning System</a>
+        <a href="/dashboard" class="w3-bar-item w3-button">Flash Bids: Live Flash Auctioning System</a>
         <div class="w3-right w3-hide-small">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('auction_controller.auctions')}}" class="w3-bar-item w3-button">Dashboard</a>
+                <a href="/dashboard" class="w3-bar-item w3-button">Dashboard</a>
                 <a href="#" class="w3-bar-item w3-button">Profile</a>
                 <a href="{{ url_for('login_controller.logout')}}" class="w3-bar-item w3-button">Logout</a>
             {% else %}
