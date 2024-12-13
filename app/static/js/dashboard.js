@@ -111,33 +111,31 @@ function renderAuctionData(auctions) {
 
       // Create auction card HTML with updated field names
       auctionRow.append(`
-          <div class="auction-column">
+        <div class="auction-column">
           <div class="auction-card">
-              <div class="card-content">
+            <div class="card-content">
               <header class="card-header">
-                  <div class="header-text">
-                  <h2 class="header-title">${auction.auction_item}</h2>
-                  </div>
+                <h2 class="header-title">${auction.auction_item}</h2>
               </header>
               <div class="card-media">
-                  <img src="${imageUrl}" alt="Product image" class="card-image">
+                <img src="${imageUrl}" alt="Product image" class="card-image">
               </div>
               <div class="card-details">
-                  <div class="card-headline">
-                    <p class="card-subtitle">Start Time: ${startTime}</p>
-                    <p class="card-subtitle">End Time: ${endTime}</p>
-                  </div>
-                  <p class="card-description">${auction.auction_desc}</p>
-                  <div class="card-actions">
+                <div class="card-headline">
+                  <p class="card-subtitle">Start Time: ${startTime}</p>
+                  <p class="card-subtitle">End Time:  ${endTime}</p>
+                  <p class="card-subtitle">Base Price: $ ${auction.base_price}</p>
+                </div>
+                <p class="card-description">${auction.auction_desc}</p>
+                <div class="card-actions">
                   <button class="primary-action join-button" data-auction-id="${auction.auction_id}">
                     <span class="action-state">Join</span>
                   </button>
-                  
-                  </div>
+                </div>
               </div>
-              </div>
+            </div>
           </div>
-          </div>
+        </div>
       `);
   });
 }
