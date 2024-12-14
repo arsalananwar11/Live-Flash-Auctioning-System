@@ -6,6 +6,29 @@ $(document).ready(function () {
         $(".create-button").prop("disabled", true).text("Processing...");
 
         const formData = new FormData(this);
+        
+        const startDate = $("#start-date").val(); 
+        const startTime = $("#start-time").val(); 
+        const endDate = $("#end-date").val();     
+        const endTime = $("#end-time").val();     
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        if (startDate && startTime && endDate && endTime) {
+            const startDateTime = new Date(`${startDate}T${startTime}`);
+            const endDateTime = new Date(`${endDate}T${endTime}`);
+            
+            const startDateTimeUTC = startDateTime.toISOString();
+            const endDateTimeUTC = endDateTime.toISOString();
+
+            formData.append("start_time_utc", startDateTimeUTC);
+            formData.append("end_time_utc", endDateTimeUTC);
+            formData.append("timezone", timezone);
+        } else {
+            alert("Please fill in the start and end date/time fields.");
+            $(".create-button").prop("disabled", false).text("Create Auction");
+            return;
+        }
+        
 
         const images = document.getElementById("image-upload").files;
         if (images.length > 0) {
@@ -34,7 +57,7 @@ $(document).ready(function () {
                         error: function (xhr) {
                             console.error("Error:", xhr.responseText);
                             alert("Failed to create auction.");
-                            $(".create-button").prop("enable", true).text("Try Again");
+                            $(".create-button").prop("disabled", false).text("Try Again");
                         },
                     });
                 })

@@ -1,15 +1,24 @@
+import time
 import boto3
 import pymysql
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+from dateutil import parser
 import os
+from time_helper import calculate_remaining_time
+import logging
+from botocore.exceptions import ClientError
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 dynamodb = boto3.resource("dynamodb")
 eventbridge_client = boto3.client("events")
 lambda_client = boto3.client("lambda")
 auction_table = dynamodb.Table("auction-connections")
-apigateway_api = boto3.client(
-    "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
+api_gateway = boto3.client(
+    "apigatewaymanagementapi", endpoint_url=os.getenv("WEBSOCKET_ENDPOINT")
 )
 
 rds_host = os.environ["DB_HOSTNAME"]
@@ -49,7 +58,6 @@ def update_rds(auction_id, is_active):
                 (is_active, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), auction_id),
             )
             connection.commit()
-            print(f"Auction {auction_id} updated in RDS to is_active = {is_active}")
     except Exception as e:
         print(f"Error updating RDS: {str(e)}")
     finally:
@@ -64,7 +72,6 @@ def delete_eventbridge_rule(rule_name):
 
         if target_ids:
             eventbridge_client.remove_targets(Rule=rule_name, Ids=target_ids)
-            print(f"Removed targets from rule: {rule_name} and its id {target_ids}")
 
         eventbridge_client.delete_rule(Name=rule_name)
         print(f"Deleted rule: {rule_name}")
@@ -82,29 +89,37 @@ def send_websocket_message(auction_id, message):
     try:
         user_connections_table = dynamodb.Table("user-connections")
 
-        response = user_connections_table.scan(
-            FilterExpression="auction_id = :auction_id",
-            ExpressionAttributeValues={":auction_id": auction_id},
+        response = user_connections_table.query(
+            IndexName="auction_id-index",
+            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(
+                auction_id
+            ),
         )
         connections = response.get("Items", [])
 
         if not connections:
             print(f"No active connections for auction {auction_id}.")
         else:
-            message = {
-                "auction_id": auction_id,
-                "auction_status": "STARTED",
-                "message": "Auction has started.",
-            }
-
             # Send message to all connected clients
             for connection in connections:
-                connection_id = connection["connection_id"]
-                apigateway_api.post_to_connection(
-                    ConnectionId=connection_id,
-                    Data=json.dumps(message),
-                )
-        # print(f"Message sent to connection: {connection_id}")
+                connection_id = connection.get("connection_id")
+                try:
+                    logger.info(
+                        "Sending start auction message to connection: %s", connection_id
+                    )
+                    api_gateway.post_to_connection(
+                        ConnectionId=connection_id, Data=json.dumps(message)
+                    )
+                    logger.info(
+                        "Successfully sent update to connection_id: %s", connection_id
+                    )
+                except ClientError as e:
+                    logger.error(
+                        "Failed to send message to connection_id %s: %s",
+                        connection_id,
+                        e.response["Error"]["Message"],
+                        exc_info=True,
+                    )
     except boto3.exceptions.Boto3Error as e:
         print(f"WebSocket error: {str(e)}")
         if "GoneException" in str(e):
@@ -126,27 +141,52 @@ def lambda_handler(event, context):
         }
 
     try:
-        response = auction_table.get_item(Key={"auction_id": auction_id})
-        auction_item = response.get("Item")
+        auction_data = auction_table.get_item(Key={"auction_id": auction_id}).get(
+            "Item"
+        )
 
-        if not auction_item:
+        if not auction_data:
             print(f"Auction {auction_id} not found in DynamoDB.")
-            return {"statusCode": 404, "body": "Auction not found"}
+            return
+        # Extract auction start time and put lambda to sleep until start time occurs
+        start_time_str = auction_data.get("auction_start_time")
+        if not start_time_str:
+            print(f"Auction {auction_id} does not have a start time.")
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": "Auction does not have a start time."}),
+            }
 
-        # Update DynamoDB auction status
+        start_time = parser.parse(start_time_str)
+        current_time = datetime.now(timezone.utc)
+        sleep_duration = (start_time - current_time).total_seconds()
+
+        if sleep_duration > 0:
+            print(f"Sleeping for {sleep_duration} seconds until auction start time.")
+            time.sleep(sleep_duration)
+        else:
+            print(f"Auction {auction_id} start time has already passed.")
+
         auction_table.update_item(
             Key={"auction_id": auction_id},
             UpdateExpression="SET auction_status = :status",
             ExpressionAttributeValues={":status": "STARTED"},
         )
-        print(f"Auction {auction_id} status updated to STARTED in DynamoDB.")
 
-        # auction_connection_id = auction_item.get("auction_connectionId")
+        end_time = auction_data.get("auction_end_time", "")
+
+        remaining_time = calculate_remaining_time(end_time)
 
         message = {
-            "auction_id": auction_id,
-            "auction_status": "STARTED",
-            "message": "Auction has started.",
+            "statusCode": 200,
+            "body": json.dumps(
+                {
+                    "message": f"Auction {auction_id} Started",
+                    "auction_status": "STARTED",
+                    "auction_end_time": end_time,
+                    "remaining_time": remaining_time,
+                }
+            ),
         }
 
         send_websocket_message(auction_id, message)
