@@ -7,7 +7,7 @@ The Live Flash Auctioning System is an innovative platform that facilitates real
 
 The architecture of the project is visualized in the diagram below:
 
-![Architecture Diagram](system_design_docs/System%20Architecture.svg)
+![Architecture Diagram](system_design_docs/System%20Architecture.jpeg)
 
 
 ## Product Features:
