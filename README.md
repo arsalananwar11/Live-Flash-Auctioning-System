@@ -3,6 +3,13 @@
 
 The Live Flash Auctioning System is an innovative platform that facilitates real-time auctions with minimal latency. Auctioneers can host live auctions, engaging participants globally. The platform ensures fair bidding practices through synchronized countdown timers and instant notifications, allowing users to participate from any location seamlessly.
 
+## Architecture
+
+The architecture of the project is visualized in the diagram below:
+
+![Architecture Diagram](system_design_docs/System%20Architecture.svg)
+
+
 ## Product Features:
 1. #### Real-Time Bidding Interface:
   - Auctioneers can input product details, including auction date, time, and duration.
