@@ -2,6 +2,7 @@ import json
 import boto3
 import os
 from botocore.exceptions import ClientError
+import time  # For sleep functionality
 
 # Initialize AWS clients
 sqs = boto3.client("sqs")
@@ -14,10 +15,11 @@ apigateway_management_api = boto3.client(
     "apigatewaymanagementapi", endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
 )
 
-
+# Environment variable for the process priority Lambda
 PROCESS_PRIORITY_LAMBDA_NAME = os.getenv("PROCESS_PRIORITY_LAMBDA_NAME")
 
 
+# Environment variables
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 
 
@@ -63,16 +65,29 @@ def attach_queue_to_lambda(queue_url):
                 )
                 return
 
-        # Create the mapping
-        response = lambda_client.create_event_source_mapping(
-            EventSourceArn=queue_arn,
-            FunctionName=PROCESS_PRIORITY_LAMBDA_NAME,
-            BatchSize=1,
-            Enabled=True,
-        )
-        print(
-            f"Attached queue {queue_url} to Lambda {PROCESS_PRIORITY_LAMBDA_NAME}: {response}"
-        )
+        # Create the mapping with retries
+        retries = 3
+        for attempt in range(retries):
+            try:
+                response = lambda_client.create_event_source_mapping(
+                    EventSourceArn=queue_arn,
+                    FunctionName=PROCESS_PRIORITY_LAMBDA_NAME,
+                    BatchSize=1,
+                    Enabled=True,
+                )
+                print(
+                    f"Attached queue {queue_url} to Lambda {PROCESS_PRIORITY_LAMBDA_NAME}: {response}"
+                )
+                return
+            except ClientError as e:
+                print(
+                    f"Error attaching queue {queue_url} to Lambda: {e.response['Error']['Message']}"
+                )
+                if attempt < retries - 1:
+                    print(f"Retrying attachment ({attempt + 1}/{retries})...")
+                    time.sleep(2)
+                else:
+                    raise e
 
     except ClientError as e:
         print(
@@ -161,9 +176,11 @@ def send_websocket_message(auction_id, message):
     try:
         user_connections_table = dynamodb.Table("user-connections")
 
-        response = user_connections_table.scan(
-            FilterExpression="auction_id = :auction_id",
-            ExpressionAttributeValues={":auction_id": auction_id},
+        response = user_connections_table.query(
+            IndexName="auction_id-index",
+            KeyConditionExpression=boto3.dynamodb.conditions.Key("auction_id").eq(
+                auction_id
+            ),
         )
         connections = response.get("Items", [])
 
@@ -172,8 +189,8 @@ def send_websocket_message(auction_id, message):
         else:
             message = {
                 "auction_id": auction_id,
-                "auction_status": "STARTED",
-                "message": "Auction has started.",
+                "auction_status": "CREATING",
+                "message": "Auction has CREATING.",
             }
 
             # Send message to all connected clients
@@ -232,33 +249,12 @@ def lambda_handler(event, context):
 
             send_websocket_message(auction_id, message)
 
-            message = {
-                "auction_id": auction_id,
-                "auction_status": "CREATING",
-                "message": "Auction is under creation stage.",
-            }
-
-            send_websocket_message(auction_id, message)
-
-            if not auction_connection_id:
-                print(
-                    f"No connection ID for auction {auction_id}. Skipping WebSocket notification."
-                )
-            else:
-                message = {
-                    "auction_status": "CREATING",
-                    "auction_id": auction_id,
-                    "message": "Auction is about to start in 5 minutes.",
-                }
-                # Send WebSocket notification
-                send_websocket_message(auction_connection_id, message)
-
             # Create queues
             fifo_queue_url = create_queue(fifo_queue_name, is_fifo=True)
             priority_queue_url = create_queue(priority_queue_name, is_fifo=False)
 
             # Attach priority queue to Lambda
-            attach_queue_to_lambda(priority_queue_url)
+            attach_queue_to_lambda(fifo_queue_url)
 
             # Delete EventBridge rule for starting the auction
             delete_eventbridge_rule(f"ResourceCreationFor_{auction_id}")

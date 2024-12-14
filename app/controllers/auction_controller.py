@@ -8,6 +8,8 @@ from flask_login import login_required, current_user
 import os
 from flask import session
 import logging
+from dateutil import parser
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,6 +23,16 @@ def auctions():
     message = MainService().get_message()
     message = f"{message} {current_user.name}"
     return render_template("index.html", message=message)
+
+
+def parse_utc_datetime(iso_string):
+    try:
+        dt = parser.isoparse(iso_string)
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=tz.UTC)
+        return dt.astimezone(tz.UTC)
+    except ValueError as e:
+        raise ValueError(f"Invalid ISO datetime format: {iso_string}") from e
 
 
 @auction_controller.route("/auctions/<string:auction_id>")
@@ -211,34 +223,32 @@ def get_auctions():
 @auction_controller.route("/create-auction", methods=["POST"])
 @login_required  # Ensure login is required
 def create_auction():
-    datetime_format = "%Y-%m-%d %H:%M"
+    # datetime_format = "%Y-%m-%d %H:%M"
     try:
+        start_time_utc = request.form.get("start_time_utc")
+        end_time_utc = request.form.get("end_time_utc")
+
+        try:
+            start_time = parse_utc_datetime(start_time_utc)
+            end_time = parse_utc_datetime(end_time_utc)
+        except ValueError as e:
+            logger.error(f"Date parsing error: {e}")
+            return jsonify({"error": str(e)}), 400
+
+        # Parse the timezone (for logging or validation if needed)
         user_timezone_str = request.form.get("timezone", "UTC")
-        user_tz = tz.gettz(user_timezone_str)
-
-        start_date = request.form.get("start_date")
-        start_time = request.form.get("start_time")
-        start_datetime = f"{start_date} {start_time}"
-        dt_start_naive = datetime.strptime(start_datetime, datetime_format)
-        dt_start_local = dt_start_naive.replace(tzinfo=user_tz)
-        dt_start_utc = dt_start_local.astimezone(tz.UTC)
-
-        end_date = request.form.get("end_date")
-        end_time = request.form.get("end_time")
-        end_datetime = f"{end_date} {end_time}"
-        dt_end_naive = datetime.strptime(end_datetime, datetime_format)
-        dt_end_local = dt_end_naive.replace(tzinfo=user_tz)
-        dt_end_utc = dt_end_local.astimezone(tz.UTC)
+        logger.info(
+            f"Received request to create auction with timezone: {user_timezone_str}"
+        )
 
         image_file = request.files.getlist("images")
-        print(f"dt_start_local: {dt_start_local}, and dt_start_utc: {dt_start_utc}")
 
         auction_data = {
             "auction_item": request.form.get("auction_item"),
             "auction_desc": request.form.get("auction_desc"),
             "base_price": float(request.form.get("base_price")),
-            "start_time": dt_start_utc.isoformat(),
-            "end_time": dt_end_utc.isoformat(),
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
             "default_time_increment": int(
                 request.form.get("default_time_increment", 5)
             ),
